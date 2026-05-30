@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Limiar da Corrupção — Central de Agentes</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     TELA 1: ROSTER (Central de Agentes)
+     Visível por padrão. Escondida quando uma ficha é aberta.
+════════════════════════════════════════════════ -->
+<div id="view-roster" class="view active">
+
+  <header class="roster-header">
+    <div class="roster-header__brand">
+      <span class="brand-glitch" data-text="LIMIAR">LIMIAR</span>
+      <span class="brand-sub">DA CORRUPÇÃO // CENTRAL DE AGENTES</span>
+    </div>
+    <div class="roster-header__actions">
+      <button id="btn-import" class="btn btn--ghost" title="Importar .json">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Importar
+      </button>
+      <button id="btn-new-agent" class="btn btn--primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Agente
+      </button>
+    </div>
+    <input type="file" id="import-file-input" accept=".json" hidden />
+  </header>
+
+  <main class="roster-grid" id="roster-grid">
+    <!-- Agent cards injected by ui.js -->
+    <div class="roster-empty" id="roster-empty">
+      <div class="roster-empty__icon">◈</div>
+      <p>Nenhum agente registrado.</p>
+      <p class="dim">Crie um novo agente ou importe um arquivo .json.</p>
+    </div>
+  </main>
+
+</div><!-- /#view-roster -->
+
+
+<!-- ═══════════════════════════════════════════════
+     TELA 2: FICHA DO AGENTE
+     Escondida por padrão. Ativada quando um agente é aberto.
+════════════════════════════════════════════════ -->
+<div id="view-sheet" class="view">
+
+  <!-- Top bar da ficha -->
+  <header class="sheet-header">
+    <button id="btn-back" class="btn btn--ghost btn--icon" title="Voltar ao Roster">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="sheet-header__identity">
+      <span id="sheet-agent-name" class="sheet-header__name">—</span>
+      <span id="sheet-agent-title" class="sheet-header__title">—</span>
+    </div>
+    <div class="sheet-header__actions">
+      <button id="btn-export" class="btn btn--ghost btn--sm">Exportar .json</button>
+      <button id="btn-delete-agent" class="btn btn--danger btn--sm">Deletar</button>
+    </div>
+  </header>
+
+  <!-- Navegação por abas -->
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="0" role="tab">ID</button>
+    <button class="tab" data-tab="1" role="tab">Status</button>
+    <button class="tab" data-tab="2" role="tab">Perícias</button>
+    <button class="tab" data-tab="3" role="tab">Arsenal</button>
+    <button class="tab" data-tab="4" role="tab">Habilidades</button>
+    <button class="tab" data-tab="5" role="tab">Anotações</button>
+  </nav>
+
+  <!-- ── ABA 0: ID DO AGENTE ── -->
+  <section class="tab-panel active" data-panel="0" role="tabpanel">
+    <div class="id-layout">
+
+      <!-- Coluna esquerda: foto + campos -->
+      <div class="id-left">
+        <div class="photo-wrapper" id="photo-wrapper" title="Clique para trocar a foto">
+          <img id="agent-photo" src="" alt="Foto do Agente" />
+          <div class="photo-overlay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span>Trocar foto</span>
+          </div>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" hidden />
+
+        <div class="field-group">
+          <label class="field-label" for="agent-name">Nome do Agente</label>
+          <input class="field-input" type="text" id="agent-name" data-field="name" placeholder="Nome completo..." />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="agent-title">Título / Codinome</label>
+          <input class="field-input" type="text" id="agent-title" data-field="title" placeholder="Ex: O Andarilho..." />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="agent-focus">Foco</label>
+          <input class="field-input" type="text" id="agent-focus" data-field="focus" placeholder="Ex: Combate, Infiltração..." />
+        </div>
+        <div class="id-row">
+          <div class="field-group">
+            <label class="field-label" for="agent-age">Idade</label>
+            <input class="field-input" type="number" id="agent-age" data-field="age" min="0" placeholder="—" />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="agent-birthdate">Nascimento</label>
+            <input class="field-input" type="text" id="agent-birthdate" data-field="birthdate" placeholder="DD/MM/AAAA" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="agent-history">História do Personagem</label>
+          <textarea class="field-textarea" id="agent-history" data-field="history" rows="6" placeholder="Escreva a história do agente..."></textarea>
+        </div>
+      </div>
+
+      <!-- Coluna direita: resumo de status e atributos -->
+      <aside class="id-right">
+        <div class="summary-block">
+          <p class="summary-label">VIDA</p>
+          <div class="summary-bar vida-bar">
+            <div class="bar-fill bar-fill--green" id="summary-vida-fill"></div>
+          </div>
+          <p class="summary-vals"><span id="summary-vida-cur">0</span> / <span id="summary-vida-max">0</span></p>
+        </div>
+        <div class="summary-block">
+          <p class="summary-label">BARREIRA MÁGICA</p>
+          <div class="summary-bar bm-bar">
+            <div class="bar-fill bar-fill--cyan" id="summary-bm-fill"></div>
+          </div>
+          <p class="summary-vals"><span id="summary-bm-cur">0</span> / <span id="summary-bm-max">0</span></p>
+        </div>
+        <div class="summary-block">
+          <p class="summary-label">FONTE</p>
+          <div class="fonte-pips" id="summary-fonte-pips"></div>
+        </div>
+        <div class="summary-attrs">
+          <p class="summary-label">ATRIBUTOS</p>
+          <div class="attr-grid-mini">
+            <div class="attr-mini"><span class="attr-mini__label">RAZ</span><span class="attr-mini__val" id="sum-raz">—</span></div>
+            <div class="attr-mini"><span class="attr-mini__label">INS</span><span class="attr-mini__val" id="sum-ins">—</span></div>
+            <div class="attr-mini"><span class="attr-mini__label">PRE</span><span class="attr-mini__val" id="sum-pre">—</span></div>
+            <div class="attr-mini"><span class="attr-mini__label">PRS</span><span class="attr-mini__val" id="sum-prs">—</span></div>
+            <div class="attr-mini"><span class="attr-mini__label">FIS</span><span class="attr-mini__val" id="sum-fis">—</span></div>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </section>
+
+  <!-- ── ABA 1: STATUS / ATRIBUTOS ── -->
+  <section class="tab-panel" data-panel="1" role="tabpanel">
+    <div class="status-layout">
+
+      <!-- Atributos -->
+      <div class="panel-card">
+        <h2 class="panel-card__title">Atributos</h2>
+        <div class="attrs-list">
+          <div class="attr-row" data-attr="raz">
+            <div class="attr-info">
+              <span class="attr-code">RAZ</span>
+              <span class="attr-name">Razão</span>
+            </div>
+            <div class="attr-stepper">
+              <button class="stepper-btn" data-action="dec" data-target="raz">−</button>
+              <span class="stepper-val" id="attr-raz">0</span>
+              <button class="stepper-btn" data-action="inc" data-target="raz">+</button>
+            </div>
+            <div class="attr-bar-mini">
+              <div class="attr-bar-fill" id="attr-bar-raz"></div>
+            </div>
+          </div>
+          <div class="attr-row" data-attr="ins">
+            <div class="attr-info">
+              <span class="attr-code">INS</span>
+              <span class="attr-name">Instinto</span>
+            </div>
+            <div class="attr-stepper">
+              <button class="stepper-btn" data-action="dec" data-target="ins">−</button>
+              <span class="stepper-val" id="attr-ins">0</span>
+              <button class="stepper-btn" data-action="inc" data-target="ins">+</button>
+            </div>
+            <div class="attr-bar-mini">
+              <div class="attr-bar-fill" id="attr-bar-ins"></div>
+            </div>
+          </div>
+          <div class="attr-row" data-attr="pre">
+            <div class="attr-info">
+              <span class="attr-code">PRE</span>
+              <span class="attr-name">Precisão</span>
+            </div>
+            <div class="attr-stepper">
+              <button class="stepper-btn" data-action="dec" data-target="pre">−</button>
+              <span class="stepper-val" id="attr-pre">0</span>
+              <button class="stepper-btn" data-action="inc" data-target="pre">+</button>
+            </div>
+            <div class="attr-bar-mini">
+              <div class="attr-bar-fill" id="attr-bar-pre"></div>
+            </div>
+          </div>
+          <div class="attr-row" data-attr="prs">
+            <div class="attr-info">
+              <span class="attr-code">PRS</span>
+              <span class="attr-name">Presença</span>
+            </div>
+            <div class="attr-stepper">
+              <button class="stepper-btn" data-action="dec" data-target="prs">−</button>
+              <span class="stepper-val" id="attr-prs">0</span>
+              <button class="stepper-btn" data-action="inc" data-target="prs">+</button>
+            </div>
+            <div class="attr-bar-mini">
+              <div class="attr-bar-fill" id="attr-bar-prs"></div>
+            </div>
+          </div>
+          <div class="attr-row" data-attr="fis">
+            <div class="attr-info">
+              <span class="attr-code">FIS</span>
+              <span class="attr-name">Físico</span>
+            </div>
+            <div class="attr-stepper">
+              <button class="stepper-btn" data-action="dec" data-target="fis">−</button>
+              <span class="stepper-val" id="attr-fis">0</span>
+              <button class="stepper-btn" data-action="inc" data-target="fis">+</button>
+            </div>
+            <div class="attr-bar-mini">
+              <div class="attr-bar-fill" id="attr-bar-fis"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barras de Status -->
+      <div class="panel-card">
+        <h2 class="panel-card__title">Status Vitais</h2>
+
+        <!-- Vida -->
+        <div class="status-bar-group">
+          <div class="status-bar-header">
+            <span class="status-label status-label--green">Vida</span>
+            <div class="status-bar-inputs">
+              <input type="number" class="status-num-input" id="vida-cur" data-field="vidaCur" min="0" />
+              <span class="status-sep">/</span>
+              <input type="number" class="status-num-input" id="vida-max" data-field="vidaMax" min="0" />
+            </div>
+          </div>
+          <div class="status-bar">
+            <div class="status-bar__fill status-bar__fill--green" id="bar-vida"></div>
+          </div>
+        </div>
+
+        <!-- Barreira Mágica -->
+        <div class="status-bar-group">
+          <div class="status-bar-header">
+            <span class="status-label status-label--cyan">Barreira Mágica</span>
+            <div class="status-bar-inputs">
+              <input type="number" class="status-num-input" id="bm-cur" data-field="bmCur" min="0" />
+              <span class="status-sep">/</span>
+              <span class="status-num-display" id="bm-max-display">0</span>
+            </div>
+          </div>
+          <div class="status-bar">
+            <div class="status-bar__fill status-bar__fill--cyan" id="bar-bm"></div>
+          </div>
+          <p class="status-bar-formula">Limite: (RAZ + INS) × 5 = <strong id="bm-formula-result">0</strong></p>
+        </div>
+
+        <!-- Fonte -->
+        <div class="status-bar-group">
+          <div class="status-bar-header">
+            <span class="status-label status-label--magenta">Fonte</span>
+            <select class="fonte-type-select" id="fonte-type" data-field="fonteType">
+              <option value="poder">Poder</option>
+              <option value="corrupcao">Corrupção</option>
+              <option value="adrenalina">Adrenalina</option>
+            </select>
+          </div>
+          <div class="fonte-pips-big" id="fonte-pips-big">
+            <!-- 10 pip buttons injected by ui.js -->
+          </div>
+        </div>
+
+        <!-- Fontes de Ação -->
+        <div class="status-bar-group">
+          <div class="status-bar-header">
+            <span class="status-label">Fontes de Ação</span>
+          </div>
+          <div class="hex-group" id="hex-group">
+            <button class="hex-pip" data-index="0" title="Fonte de Ação 1"></button>
+            <button class="hex-pip" data-index="1" title="Fonte de Ação 2"></button>
+            <button class="hex-pip" data-index="2" title="Fonte de Ação 3"></button>
+            <button class="hex-pip" data-index="3" title="Fonte de Ação 4"></button>
+            <button class="hex-pip" data-index="4" title="Fonte de Ação 5"></button>
+          </div>
+        </div>
+
+      </div><!-- /.panel-card status -->
+
+    </div><!-- /.status-layout -->
+  </section>
+
+  <!-- ── ABA 2: PERÍCIAS ── -->
+  <section class="tab-panel" data-panel="2" role="tabpanel">
+    <div class="skills-layout">
+
+      <!-- Grupo: Físico -->
+      <div class="skill-group" data-attr-group="fis">
+        <div class="skill-group__header skill-group__header--fis">
+          <span>FIS — Físico</span>
+          <span class="skill-group__val" id="skill-header-fis">0</span>
+        </div>
+        <button class="skill-row" data-skill="atletismo" data-formula="fis">
+          <span class="skill-name">Atletismo</span>
+          <span class="skill-formula">2d10 + FIS</span>
+          <span class="skill-total" id="skill-val-atletismo">0</span>
+        </button>
+        <button class="skill-row" data-skill="forca" data-formula="fis">
+          <span class="skill-name">Força</span>
+          <span class="skill-formula">2d10 + FIS</span>
+          <span class="skill-total" id="skill-val-forca">0</span>
+        </button>
+        <button class="skill-row" data-skill="resistencia-fisica" data-formula="fis">
+          <span class="skill-name">Resistência Física</span>
+          <span class="skill-formula">2d10 + FIS</span>
+          <span class="skill-total" id="skill-val-resistencia-fisica">0</span>
+        </button>
+      </div>
+
+      <!-- Grupo: Instinto -->
+      <div class="skill-group" data-attr-group="ins">
+        <div class="skill-group__header skill-group__header--ins">
+          <span>INS — Instinto</span>
+          <span class="skill-group__val" id="skill-header-ins">0</span>
+        </div>
+        <button class="skill-row" data-skill="sobrevivencia" data-formula="ins">
+          <span class="skill-name">Sobrevivência</span>
+          <span class="skill-formula">2d10 + INS</span>
+          <span class="skill-total" id="skill-val-sobrevivencia">0</span>
+        </button>
+        <button class="skill-row" data-skill="intuicao" data-formula="ins">
+          <span class="skill-name">Intuição</span>
+          <span class="skill-formula">2d10 + INS</span>
+          <span class="skill-total" id="skill-val-intuicao">0</span>
+        </button>
+        <button class="skill-row" data-skill="percepcao" data-formula="ins">
+          <span class="skill-name">Percepção</span>
+          <span class="skill-formula">2d10 + INS</span>
+          <span class="skill-total" id="skill-val-percepcao">0</span>
+        </button>
+      </div>
+
+      <!-- Grupo: Razão -->
+      <div class="skill-group" data-attr-group="raz">
+        <div class="skill-group__header skill-group__header--raz">
+          <span>RAZ — Razão</span>
+          <span class="skill-group__val" id="skill-header-raz">0</span>
+        </div>
+        <button class="skill-row" data-skill="tecnologia" data-formula="raz">
+          <span class="skill-name">Tecnologia</span>
+          <span class="skill-formula">2d10 + RAZ</span>
+          <span class="skill-total" id="skill-val-tecnologia">0</span>
+        </button>
+        <button class="skill-row" data-skill="raciocinio" data-formula="raz">
+          <span class="skill-name">Raciocínio</span>
+          <span class="skill-formula">2d10 + RAZ</span>
+          <span class="skill-total" id="skill-val-raciocinio">0</span>
+        </button>
+      </div>
+
+      <!-- Grupo: Precisão -->
+      <div class="skill-group" data-attr-group="pre">
+        <div class="skill-group__header skill-group__header--pre">
+          <span>PRE — Precisão</span>
+          <span class="skill-group__val" id="skill-header-pre">0</span>
+        </div>
+        <button class="skill-row" data-skill="prestidigitacao" data-formula="pre">
+          <span class="skill-name">Prestidigitação</span>
+          <span class="skill-formula">2d10 + PRE</span>
+          <span class="skill-total" id="skill-val-prestidigitacao">0</span>
+        </button>
+      </div>
+
+      <!-- Grupo: Presença -->
+      <div class="skill-group" data-attr-group="prs">
+        <div class="skill-group__header skill-group__header--prs">
+          <span>PRS — Presença</span>
+          <span class="skill-group__val" id="skill-header-prs">0</span>
+        </div>
+        <button class="skill-row" data-skill="furtividade" data-formula="prs">
+          <span class="skill-name">Furtividade</span>
+          <span class="skill-formula">2d10 + PRS</span>
+          <span class="skill-total" id="skill-val-furtividade">0</span>
+        </button>
+        <button class="skill-row" data-skill="engano" data-formula="prs">
+          <span class="skill-name">Engano</span>
+          <span class="skill-formula">2d10 + PRS</span>
+          <span class="skill-total" id="skill-val-engano">0</span>
+        </button>
+        <button class="skill-row" data-skill="presenca-skill" data-formula="prs">
+          <span class="skill-name">Presença</span>
+          <span class="skill-formula">2d10 + PRS</span>
+          <span class="skill-total" id="skill-val-presenca-skill">0</span>
+        </button>
+      </div>
+
+      <!-- Grupo: Híbridos -->
+      <div class="skill-group skill-group--hybrid" data-attr-group="hybrid">
+        <div class="skill-group__header skill-group__header--hybrid">
+          <span>Híbridos</span>
+        </div>
+        <button class="skill-row" data-skill="redirecionamento" data-formula="pre_fis">
+          <span class="skill-name">Redirecionamento</span>
+          <span class="skill-formula">2d10 + (PRE+FIS)/2</span>
+          <span class="skill-total" id="skill-val-redirecionamento">0</span>
+        </button>
+        <button class="skill-row" data-skill="medicina" data-formula="pre_raz">
+          <span class="skill-name">Medicina</span>
+          <span class="skill-formula">2d10 + (PRE+RAZ)/2</span>
+          <span class="skill-total" id="skill-val-medicina">0</span>
+        </button>
+        <button class="skill-row" data-skill="confeccao" data-formula="pre_raz">
+          <span class="skill-name">Confecção e Reparo</span>
+          <span class="skill-formula">2d10 + (PRE+RAZ)/2</span>
+          <span class="skill-total" id="skill-val-confeccao">0</span>
+        </button>
+        <button class="skill-row" data-skill="resistencia-mental" data-formula="raz_ins">
+          <span class="skill-name">Resistência Mental</span>
+          <span class="skill-formula">2d10 + (RAZ+INS)/2</span>
+          <span class="skill-total" id="skill-val-resistencia-mental">0</span>
+        </button>
+        <button class="skill-row" data-skill="concentracao" data-formula="pre_raz">
+          <span class="skill-name">Concentração</span>
+          <span class="skill-formula">2d10 + (PRE+RAZ)/2</span>
+          <span class="skill-total" id="skill-val-concentracao">0</span>
+        </button>
+        <button class="skill-row" data-skill="agilidade" data-formula="pre_ins">
+          <span class="skill-name">Agilidade</span>
+          <span class="skill-formula">2d10 + (PRE+INS)/2</span>
+          <span class="skill-total" id="skill-val-agilidade">0</span>
+        </button>
+        <button class="skill-row" data-skill="investigacao" data-formula="raz_ins">
+          <span class="skill-name">Investigação</span>
+          <span class="skill-formula">2d10 + (RAZ+INS)/2</span>
+          <span class="skill-total" id="skill-val-investigacao">0</span>
+        </button>
+        <button class="skill-row" data-skill="negociacao" data-formula="raz_prs">
+          <span class="skill-name">Negociação</span>
+          <span class="skill-formula">2d10 + (RAZ+PRS)/2</span>
+          <span class="skill-total" id="skill-val-negociacao">0</span>
+        </button>
+      </div>
+
+    </div><!-- /.skills-layout -->
+  </section>
+
+  <!-- ── ABA 3: ARSENAL ── -->
+  <section class="tab-panel" data-panel="3" role="tabpanel">
+    <div class="arsenal-layout">
+
+      <!-- Contadores -->
+      <div class="arsenal-counters">
+        <div class="big-counter">
+          <p class="big-counter__label">RD (Traje)</p>
+          <div class="big-counter__ctrl">
+            <button class="counter-btn" data-action="dec" data-target="rd">−</button>
+            <input type="number" class="big-counter__val" id="rd-val" data-field="rd" min="0" value="0" />
+            <button class="counter-btn" data-action="inc" data-target="rd">+</button>
+          </div>
+        </div>
+        <div class="big-counter">
+          <p class="big-counter__label">Créditos Universais</p>
+          <div class="big-counter__ctrl">
+            <button class="counter-btn" data-action="dec" data-target="credits">−</button>
+            <input type="number" class="big-counter__val" id="credits-val" data-field="credits" min="0" value="0" />
+            <button class="counter-btn" data-action="inc" data-target="credits">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de equipamentos -->
+      <div class="panel-card">
+        <div class="panel-card__header">
+          <h2 class="panel-card__title">Equipamentos</h2>
+          <button class="btn btn--primary btn--sm" id="btn-add-equipment">+ Adicionar Item</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="equipment-table" id="equipment-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th>Mercado</th>
+                <th>Dano</th>
+                <th>Alcance</th>
+                <th>Preço</th>
+                <th>Qtd</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="equipment-body">
+              <!-- Rows injected by ui.js -->
+            </tbody>
+          </table>
+        </div>
+        <p class="table-empty" id="equipment-empty">Nenhum equipamento cadastrado.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── ABA 4: HABILIDADES ── -->
+  <section class="tab-panel" data-panel="4" role="tabpanel">
+    <div class="abilities-layout">
+      <div class="abilities-toolbar">
+        <button class="btn btn--primary" id="btn-add-ability">+ Nova Habilidade</button>
+      </div>
+      <div class="abilities-grid" id="abilities-grid">
+        <!-- Ability cards injected by ui.js -->
+        <p class="table-empty" id="abilities-empty">Nenhuma habilidade cadastrada.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ABA 5: ANOTAÇÕES ── -->
+  <section class="tab-panel" data-panel="5" role="tabpanel">
+    <div class="notes-layout">
+      <div class="notes-toolbar">
+        <button class="btn btn--primary" id="btn-add-note">+ Novo Bloco</button>
+      </div>
+      <div class="notes-grid" id="notes-grid">
+        <!-- Note blocks injected by ui.js -->
+        <p class="table-empty" id="notes-empty">Nenhuma anotação cadastrada.</p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /#view-sheet -->
+
+
+<!-- ═══════════════════════════════════════════════
+     MODAL: CRIAR / EDITAR AGENTE
+════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-new-agent" hidden>
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">Novo Agente</h2>
+      <button class="modal__close" id="modal-close-new">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="field-group">
+        <label class="field-label" for="new-agent-name">Nome do Agente *</label>
+        <input class="field-input" type="text" id="new-agent-name" placeholder="Nome do agente..." />
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="new-agent-title">Título / Codinome</label>
+        <input class="field-input" type="text" id="new-agent-title" placeholder="Codinome..." />
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" id="modal-cancel-new">Cancelar</button>
+      <button class="btn btn--primary" id="modal-confirm-new">Criar Agente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MODAL: CONFIRMAÇÃO DE DELETE
+════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-confirm-delete" hidden>
+  <div class="modal modal--danger">
+    <div class="modal__header">
+      <h2 class="modal__title">Deletar Agente</h2>
+      <button class="modal__close" id="modal-close-delete">✕</button>
+    </div>
+    <div class="modal__body">
+      <p>Tem certeza que deseja deletar <strong id="delete-agent-name-display"></strong>? Esta ação é irreversível.</p>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" id="modal-cancel-delete">Cancelar</button>
+      <button class="btn btn--danger" id="modal-confirm-delete-btn">Deletar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     POP-UP: RESULTADO DA ROLAGEM
+════════════════════════════════════════════════ -->
+<div class="dice-popup" id="dice-popup" hidden>
+  <div class="dice-popup__inner">
+    <p class="dice-popup__skill" id="dice-popup-skill">Atletismo</p>
+    <div class="dice-popup__dice">
+      <span class="dice-popup__d1" id="dice-d1">—</span>
+      <span class="dice-popup__plus">+</span>
+      <span class="dice-popup__d2" id="dice-d2">—</span>
+      <span class="dice-popup__plus">+</span>
+      <span class="dice-popup__mod" id="dice-mod">0</span>
+    </div>
+    <p class="dice-popup__total" id="dice-total">0</p>
+    <p class="dice-popup__label">TOTAL</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TOAST / NOTIFICAÇÕES
+════════════════════════════════════════════════ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- JS Modules -->
+<script type="module" src="state.js"></script>
+<script type="module" src="dice.js"></script>
+<script type="module" src="ui.js"></script>
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
