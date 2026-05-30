@@ -510,7 +510,7 @@ export function bindSheetEvents() {
   bindPhotoDrag();
 
   // ── Campos data-field ──
-  $$('[data-field]','#view-sheet').forEach(el => {
+  $$('[data-field]', document.getElementById('view-sheet')).forEach(el => {
     const ev = el.tagName==='TEXTAREA' ? 'input' : 'change';
     el.addEventListener(ev, () => {
       const field = el.dataset.field;
