@@ -66,51 +66,8 @@
   <section class="tab-panel active" data-panel="0" role="tabpanel">
     <div class="id-layout">
 
+      <!-- Coluna esquerda: campos de texto -->
       <div class="id-left">
-
-        <!-- Foto + Resumo lado a lado no topo -->
-        <div class="id-top-row">
-          <!-- Foto arrastável -->
-          <div class="photo-wrapper" id="photo-wrapper" title="Clique para trocar foto">
-            <img id="agent-photo" src="" alt="Foto do Agente" draggable="false" />
-            <div class="photo-overlay">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-              <span>Trocar foto</span>
-            </div>
-            <div class="photo-drag-hint" id="photo-drag-hint">↕ Arraste para reposicionar</div>
-          </div>
-          <input type="file" id="photo-input" accept="image/*" hidden />
-
-          <!-- Resumo lateral (agora ao lado da foto) -->
-          <aside class="id-right">
-            <div class="summary-block">
-              <p class="summary-label">VIDA</p>
-              <div class="summary-bar"><div class="bar-fill bar-fill--green" id="summary-vida-fill"></div></div>
-              <p class="summary-vals"><span id="summary-vida-cur">0</span> / <span id="summary-vida-max">0</span></p>
-            </div>
-            <div class="summary-block">
-              <p class="summary-label">BARREIRA MÁGICA</p>
-              <div class="summary-bar"><div class="bar-fill bar-fill--cyan" id="summary-bm-fill"></div></div>
-              <p class="summary-vals"><span id="summary-bm-cur">0</span> / <span id="summary-bm-max">0</span></p>
-            </div>
-            <div class="summary-block">
-              <p class="summary-label">FONTE</p>
-              <div class="fonte-pips" id="summary-fonte-pips"></div>
-            </div>
-            <div class="summary-attrs">
-              <p class="summary-label">ATRIBUTOS</p>
-              <div class="attr-grid-mini">
-                <div class="attr-mini"><span class="attr-mini__label">RAZ</span><span class="attr-mini__val" id="sum-raz">—</span></div>
-                <div class="attr-mini"><span class="attr-mini__label">INS</span><span class="attr-mini__val" id="sum-ins">—</span></div>
-                <div class="attr-mini"><span class="attr-mini__label">PRE</span><span class="attr-mini__val" id="sum-pre">—</span></div>
-                <div class="attr-mini"><span class="attr-mini__label">PRS</span><span class="attr-mini__val" id="sum-prs">—</span></div>
-                <div class="attr-mini"><span class="attr-mini__label">FIS</span><span class="attr-mini__val" id="sum-fis">—</span></div>
-              </div>
-            </div>
-          </aside>
-        </div><!-- /.id-top-row -->
-
-        <!-- Campos de texto abaixo da foto+resumo -->
         <div class="field-group">
           <label class="field-label" for="agent-name">Nome do Agente</label>
           <input class="field-input" type="text" id="agent-name" data-field="name" placeholder="Nome completo..." />
@@ -135,10 +92,48 @@
         </div>
         <div class="field-group">
           <label class="field-label" for="agent-history">História do Personagem</label>
-          <textarea class="field-textarea" id="agent-history" data-field="history" rows="6" placeholder="Escreva a história do agente..."></textarea>
+          <textarea class="field-textarea" id="agent-history" data-field="history" rows="10" placeholder="Escreva a história do agente..."></textarea>
         </div>
-
       </div><!-- /.id-left -->
+
+      <!-- Coluna direita: foto em cima, resumo embaixo -->
+      <div class="id-right">
+        <div class="photo-wrapper" id="photo-wrapper" title="Clique para trocar foto">
+          <img id="agent-photo" src="" alt="Foto do Agente" draggable="false" />
+          <div class="photo-overlay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span>Trocar foto</span>
+          </div>
+          <div class="photo-drag-hint" id="photo-drag-hint">↕ Arraste para reposicionar</div>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" hidden />
+
+        <div class="summary-block">
+          <p class="summary-label">VIDA</p>
+          <div class="summary-bar"><div class="bar-fill bar-fill--green" id="summary-vida-fill"></div></div>
+          <p class="summary-vals"><span id="summary-vida-cur">0</span> / <span id="summary-vida-max">0</span></p>
+        </div>
+        <div class="summary-block">
+          <p class="summary-label">BARREIRA MÁGICA</p>
+          <div class="summary-bar"><div class="bar-fill bar-fill--cyan" id="summary-bm-fill"></div></div>
+          <p class="summary-vals"><span id="summary-bm-cur">0</span> / <span id="summary-bm-max">0</span></p>
+        </div>
+        <div class="summary-block">
+          <p class="summary-label">FONTE</p>
+          <div class="fonte-pips" id="summary-fonte-pips"></div>
+        </div>
+        <div class="summary-attrs">
+          <p class="summary-label">ATRIBUTOS</p>
+          <div class="attr-grid-mini">
+            <div class="attr-mini"><span class="attr-mini__label">RAZ</span><span class="attr-mini__val" id="sum-raz">—</span></div>
+            <div class="attr-mini"><span class="attr-mini__label">INS</span><span class="attr-mini__val" id="sum-ins">—</span></div>
+            <div class="attr-mini"><span class="attr-mini__label">PRE</span><span class="attr-mini__val" id="sum-pre">—</span></div>
+            <div class="attr-mini"><span class="attr-mini__label">PRS</span><span class="attr-mini__val" id="sum-prs">—</span></div>
+            <div class="attr-mini"><span class="attr-mini__label">FIS</span><span class="attr-mini__val" id="sum-fis">—</span></div>
+          </div>
+        </div>
+      </div><!-- /.id-right -->
+
     </div><!-- /.id-layout -->
   </section>
 
