@@ -279,7 +279,8 @@ body {
 /* ════════════════════════════════════
    SHEET — Ficha do Agente
 ════════════════════════════════════ */
-#view-sheet { display: flex; flex-direction: column; }
+#view-sheet { flex-direction: column; }
+#view-sheet.active { display: flex; }
 
 .sheet-header {
   display: flex;
@@ -362,28 +363,8 @@ body {
 /* ════════════════════════════════════
    ABA 0 — ID DO AGENTE
 ════════════════════════════════════ */
-.id-layout {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 28px;
-  align-items: start;
-}
+/* id-layout, id-left, id-right, photo-wrapper — see v2 block below */
 
-.id-left { display: flex; flex-direction: column; gap: 16px; }
-
-/* Photo */
-.photo-wrapper {
-  position: relative;
-  width: 140px;
-  height: 140px;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid var(--border-mid);
-  transition: border-color var(--transition);
-  flex-shrink: 0;
-}
-.photo-wrapper:hover { border-color: var(--cyan); }
 #agent-photo {
   width: 100%;
   height: 100%;
@@ -412,18 +393,7 @@ body {
 
 .id-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-/* Resumo lateral */
-.id-right {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  position: sticky;
-  top: 100px;
-}
+/* .id-right defined in v2 block */
 
 .summary-block { display: flex; flex-direction: column; gap: 6px; }
 .summary-label {
@@ -1498,23 +1468,33 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
    LIMIAR DA CORRUPÇÃO — style.css ADDITIONS v2
    ══════════════════════════════════════════════════════ */
 
-/* ── ABA 0: novo layout foto + resumo ── */
-.id-layout   { display: block; }
-.id-left     { display: flex; flex-direction: column; gap: 16px; max-width: 860px; margin: 0 auto; }
-
-.id-top-row {
+/* ── ABA 0: layout 2 colunas — esquerda=campos, direita=foto+resumo ── */
+.id-layout {
   display: grid;
-  grid-template-columns: 180px 1fr;
-  gap: 20px;
+  grid-template-columns: 1fr 280px;
+  gap: 28px;
   align-items: start;
 }
+.id-left { display: flex; flex-direction: column; gap: 16px; }
 
-/* Photo: maior, arrastável */
+.id-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  position: sticky;
+  top: 100px;
+}
+
+/* Photo dentro da coluna direita */
 .photo-wrapper {
   position: relative;
-  width: 180px;
+  width: 100%;
   height: 220px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
   cursor: pointer;
   border: 2px solid var(--border-mid);
@@ -1554,17 +1534,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 /* show overlay only when no photo */
 .photo-wrapper:not(.has-photo):hover .photo-overlay { opacity: 1; }
 
-/* Resumo ao lado da foto */
-.id-right {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  position: static; /* no longer sticky */
-}
+/* .id-right defined above */
 
 /* ── ABA 1: equal-height cards ── */
 .status-layout {
@@ -1688,7 +1658,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   display: grid;
   grid-template-columns: 1fr 300px;
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 .skills-layout {
   display: grid;
@@ -1698,7 +1668,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 /* hybrid spans full width within skills-layout */
 .skill-group[data-attr-group="hybrid"] { grid-column: 1 / -1; }
 
-/* Roll panel */
+/* Roll panel — altura igual à coluna de perícias */
 .roll-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-mid);
@@ -1709,6 +1679,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   overflow: hidden;
   position: sticky;
   top: 100px;
+  max-height: calc(100vh - 120px);
 }
 .roll-panel__header {
   display: flex;
@@ -1796,7 +1767,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   color: var(--text-dim);
   text-transform: uppercase;
 }
-.roll-panel__history-wrap { padding: 12px 0; overflow: hidden; }
+.roll-panel__history-wrap { padding: 12px 0; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .roll-panel__history-label {
   font-family: var(--font-mono);
   font-size: 0.6rem;
@@ -1804,12 +1775,14 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   color: var(--text-dim);
   padding: 0 16px 8px;
   text-transform: uppercase;
+  flex-shrink: 0;
 }
 .roll-history-list {
   list-style: none;
-  max-height: 280px;
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 0;
 }
 .roll-history__empty {
   font-family: var(--font-mono);
@@ -1971,8 +1944,9 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   .dev-counters  { grid-template-columns: 1fr; gap: 12px; }
 }
 @media (max-width: 700px) {
-  .id-top-row { grid-template-columns: 1fr; }
-  .photo-wrapper { width: 100%; height: 200px; }
+  .id-layout { grid-template-columns: 1fr; }
+  .id-right  { position: static; }
+  .photo-wrapper { height: 200px; }
 }
 @media (max-width: 480px) {
   .rd-presets { flex-direction: column; width: 100%; }
