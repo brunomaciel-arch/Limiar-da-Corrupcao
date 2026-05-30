@@ -1,228 +1,155 @@
 /* ══════════════════════════════════════════════════════
-   LIMIAR DA CORRUPÇÃO — ui.js
-   Controlador de Interface: Roster, Ficha, Abas, Bindings
+   LIMIAR DA CORRUPÇÃO — ui.js  (v2)
    ══════════════════════════════════════════════════════ */
 
 import {
-  loadAllAgents,
-  createAgent,
-  deleteAgent,
-  openAgent,
-  getActiveAgent,
-  saveAgent,
-  setField,
-  setAttr,
-  stepAttr,
-  setBmCur,
-  setFonteCur,
-  toggleActionSource,
-  calcBmMax,
-  calcSkillMod,
-  exportAgent,
-  importAgentFromFile,
-  addEquipment,
-  updateEquipmentField,
-  removeEquipment,
-  addAbility,
-  updateAbilityField,
-  removeAbility,
-  addNote,
-  updateNoteField,
-  removeNote,
+  loadAllAgents, createAgent, deleteAgent,
+  openAgent, getActiveAgent, setField,
+  setAttr, stepAttr, setBmCur, setVidaCur,
+  setFonteCur, toggleActionSource,
+  calcBmMax, calcSkillMod,
+  exportAgent, importAgentFromFile,
+  addEquipment, updateEquipmentField, removeEquipment,
+  addAbility, updateAbilityField, removeAbility,
+  addNote, updateNoteField, removeNote,
+  stepDev, setPhotoOffset,
+  clearRollHistory,
 } from './state.js';
 
-/* ══════════════════════════
-   REFERÊNCIAS DOM
-══════════════════════════ */
-const $ = (sel, ctx = document) => ctx.querySelector(sel);
-const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+const $ = (s, c = document) => c.querySelector(s);
+const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 
-const views = {
-  roster: $('#view-roster'),
-  sheet:  $('#view-sheet'),
-};
-
-/* ══════════════════════════
-   TOAST
-══════════════════════════ */
-export function showToast(message, type = '') {
-  const container = $('#toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast${type ? ` toast--${type}` : ''}`;
-  toast.textContent = message;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+/* ── TOAST ── */
+export function showToast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = `toast${type ? ` toast--${type}` : ''}`;
+  el.textContent = msg;
+  $('#toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
 }
 
-/* ══════════════════════════
-   NAVEGAÇÃO DE VIEWS
-══════════════════════════ */
+/* ── VIEWS ── */
 export function showView(name) {
-  Object.entries(views).forEach(([key, el]) => {
-    el.classList.toggle('active', key === name);
-  });
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === `view-${name}`));
 }
 
-/* ══════════════════════════════════════════════
-   ROSTER — Central de Agentes
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════
+   ROSTER
+════════════════════════════════════ */
 export function renderRoster() {
-  const grid   = $('#roster-grid');
-  const empty  = $('#roster-empty');
-  const agents = loadAllAgents();
-
-  // Limpar cards existentes (preservar o empty placeholder)
+  const grid  = $('#roster-grid');
+  const empty = $('#roster-empty');
   $$('.agent-card', grid).forEach(c => c.remove());
-
-  if (agents.length === 0) {
-    empty.style.display = '';
-    return;
-  }
-
+  const agents = loadAllAgents();
+  if (!agents.length) { empty.style.display = ''; return; }
   empty.style.display = 'none';
-
-  agents.forEach(agent => {
-    const card = buildAgentCard(agent);
-    grid.appendChild(card);
-  });
+  agents.forEach(a => grid.appendChild(buildAgentCard(a)));
 }
 
 function buildAgentCard(agent) {
   const bmMax   = calcBmMax(agent);
-  const vidaPct = agent.vidaMax > 0
-    ? Math.min(100, (agent.vidaCur / agent.vidaMax) * 100)
-    : 0;
-  const bmPct = bmMax > 0
-    ? Math.min(100, (agent.bmCur / bmMax) * 100)
-    : 0;
-  const fontePct = (agent.fonteCur / 10) * 100;
+  const vidaPct = agent.vidaMax > 0 ? Math.min(100, (agent.vidaCur / agent.vidaMax) * 100) : 0;
+  const bmPct   = bmMax > 0        ? Math.min(100, (agent.bmCur  / bmMax)           * 100) : 0;
+  const card    = document.createElement('div');
+  card.className = 'agent-card';
+  card.dataset.id = agent.id;
 
-  const card = document.createElement('div');
-  card.className   = 'agent-card';
-  card.dataset.id  = agent.id;
-
-  // Foto ou placeholder
   const photoHtml = agent.photo
-    ? `<img class="agent-card__photo" src="${agent.photo}" alt="${escapeHtml(agent.name)}" />`
+    ? `<img class="agent-card__photo" src="${agent.photo}"
+            style="object-position:${agent.photoOffsetX??50}% ${agent.photoOffsetY??50}%"
+            alt="${esc(agent.name)}" />`
     : `<div class="agent-card__photo-placeholder">◈</div>`;
 
   card.innerHTML = `
     ${photoHtml}
     <div class="agent-card__body">
-      <p class="agent-card__name">${escapeHtml(agent.name)}</p>
-      <p class="agent-card__title">${escapeHtml(agent.title || '—')}</p>
+      <p class="agent-card__name">${esc(agent.name)}</p>
+      <p class="agent-card__title">${esc(agent.title || '—')}</p>
       <div class="agent-card__bars">
         <div class="agent-card__bar-row">
           <span class="agent-card__bar-label">VID</span>
-          <div class="agent-card__bar-track">
-            <div class="agent-card__bar-fill agent-card__bar-fill--green"
-                 style="width:${vidaPct}%"></div>
-          </div>
+          <div class="agent-card__bar-track"><div class="agent-card__bar-fill agent-card__bar-fill--green" style="width:${vidaPct}%"></div></div>
           <span class="agent-card__bar-vals">${agent.vidaCur}/${agent.vidaMax}</span>
         </div>
         <div class="agent-card__bar-row">
           <span class="agent-card__bar-label">BM</span>
-          <div class="agent-card__bar-track">
-            <div class="agent-card__bar-fill agent-card__bar-fill--cyan"
-                 style="width:${bmPct}%"></div>
-          </div>
+          <div class="agent-card__bar-track"><div class="agent-card__bar-fill agent-card__bar-fill--cyan" style="width:${bmPct}%"></div></div>
           <span class="agent-card__bar-vals">${agent.bmCur}/${bmMax}</span>
         </div>
         <div class="agent-card__bar-row">
           <span class="agent-card__bar-label">FON</span>
-          <div class="agent-card__bar-track">
-            <div class="agent-card__bar-fill agent-card__bar-fill--magenta"
-                 style="width:${fontePct}%"></div>
-          </div>
+          <div class="agent-card__bar-track"><div class="agent-card__bar-fill agent-card__bar-fill--magenta" style="width:${(agent.fonteCur/10)*100}%"></div></div>
           <span class="agent-card__bar-vals">${agent.fonteCur}/10</span>
         </div>
       </div>
     </div>
-    <button class="agent-card__delete" data-delete-id="${agent.id}" title="Deletar agente">✕</button>
-  `;
+    <button class="agent-card__delete" data-delete-id="${agent.id}">✕</button>`;
 
-  // Abrir ficha ao clicar no card (exceto no botão de delete)
-  card.addEventListener('click', (e) => {
+  card.addEventListener('click', e => {
     if (e.target.closest('.agent-card__delete')) return;
     openSheet(agent.id);
   });
-
-  // Botão de delete no card
-  card.querySelector('.agent-card__delete').addEventListener('click', (e) => {
+  card.querySelector('.agent-card__delete').addEventListener('click', e => {
     e.stopPropagation();
     showDeleteModal(agent.id, agent.name);
   });
-
   return card;
 }
 
-/* ══════════════════════════════════════════════
-   FICHA — Abrir / Fechar
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════
+   SHEET
+════════════════════════════════════ */
 export function openSheet(id) {
   const agent = openAgent(id);
   if (!agent) { showToast('Agente não encontrado.', 'error'); return; }
-
-  // Atualizar header
   $('#sheet-agent-name').textContent  = agent.name  || '—';
   $('#sheet-agent-title').textContent = agent.title || '—';
-
-  // Preencher todas as abas
   populateTab0(agent);
   populateTab1(agent);
   populateTab2(agent);
   populateTab3(agent);
   populateTab4(agent);
   populateTab5(agent);
-
-  // Ativar aba 0
+  populateRollHistory(agent);
   activateTab(0);
-
   showView('sheet');
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-export function closeSheet() {
-  showView('roster');
-  renderRoster();
+export function closeSheet() { showView('roster'); renderRoster(); }
+export function activateTab(i) {
+  $$('.tab').forEach(t   => t.classList.toggle('active',   Number(t.dataset.tab)   === i));
+  $$('.tab-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.panel) === i));
 }
 
-/* ══════════════════════════════════════════════
-   NAVEGAÇÃO POR ABAS
-══════════════════════════════════════════════ */
-export function activateTab(index) {
-  $$('.tab').forEach(t => t.classList.toggle('active', Number(t.dataset.tab) === index));
-  $$('.tab-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.panel) === index));
-}
-
-/* ══════════════════════════════════════════════
-   ABA 0 — ID DO AGENTE
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════
+   ABA 0
+════════════════════════════════════ */
 function populateTab0(agent) {
-  // Foto
-  const photoEl = $('#agent-photo');
-  photoEl.src = agent.photo || '';
-  photoEl.style.display = agent.photo ? 'block' : 'none';
+  const photo = $('#agent-photo');
+  const wrapper = $('#photo-wrapper');
+  if (agent.photo) {
+    photo.src = agent.photo;
+    photo.style.objectPosition = `${agent.photoOffsetX ?? 50}% ${agent.photoOffsetY ?? 50}%`;
+    photo.style.display = 'block';
+    wrapper.classList.add('has-photo');
+  } else {
+    photo.src = '';
+    photo.style.display = 'none';
+    wrapper.classList.remove('has-photo');
+  }
 
-  // Campos de texto simples
-  const textFields = ['name', 'title', 'focus', 'age', 'birthdate', 'history'];
-  textFields.forEach(field => {
-    const el = $(`[data-field="${field}"]`);
-    if (el) el.value = agent[field] ?? '';
+  ['name','title','focus','age','birthdate','history'].forEach(f => {
+    const el = $(`[data-field="${f}"]`);
+    if (el) el.value = agent[f] ?? '';
   });
-
-  // Resumo lateral
   updateSummary(agent);
 }
 
-function updateSummary(agent) {
-  const bmMax = calcBmMax(agent);
-
-  // Barras
-  const vidaPct = agent.vidaMax > 0
-    ? Math.min(100, (agent.vidaCur / agent.vidaMax) * 100) : 0;
-  const bmPct = bmMax > 0
-    ? Math.min(100, (agent.bmCur / bmMax) * 100) : 0;
+export function updateSummary(agent) {
+  const bmMax   = calcBmMax(agent);
+  const vidaPct = agent.vidaMax > 0 ? Math.min(100,(agent.vidaCur/agent.vidaMax)*100) : 0;
+  const bmPct   = bmMax > 0        ? Math.min(100,(agent.bmCur/bmMax)*100)            : 0;
 
   $('#summary-vida-fill').style.width = `${vidaPct}%`;
   $('#summary-bm-fill').style.width   = `${bmPct}%`;
@@ -231,615 +158,672 @@ function updateSummary(agent) {
   $('#summary-bm-cur').textContent    = agent.bmCur;
   $('#summary-bm-max').textContent    = bmMax;
 
-  // Pips de fonte (resumo)
-  const pipsContainer = $('#summary-fonte-pips');
-  pipsContainer.innerHTML = '';
+  const pipsEl = $('#summary-fonte-pips');
+  pipsEl.innerHTML = '';
   for (let i = 0; i < 10; i++) {
-    const pip = document.createElement('span');
-    pip.className = `pip${i < agent.fonteCur ? ' active' : ''}`;
-    pipsContainer.appendChild(pip);
+    const p = document.createElement('span');
+    p.className = `pip${i < agent.fonteCur ? ' active' : ''}`;
+    pipsEl.appendChild(p);
   }
-
-  // Atributos mini
-  ['raz','ins','pre','prs','fis'].forEach(attr => {
-    const el = $(`#sum-${attr}`);
-    if (el) el.textContent = agent.attrs[attr] ?? 0;
+  ['raz','ins','pre','prs','fis'].forEach(a => {
+    const el = $(`#sum-${a}`);
+    if (el) el.textContent = agent.attrs[a] ?? 0;
   });
 }
 
-/* ══════════════════════════════════════════════
-   ABA 1 — STATUS / ATRIBUTOS
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════
+   ABA 1
+════════════════════════════════════ */
 function populateTab1(agent) {
-  // Atributos
-  ['raz','ins','pre','prs','fis'].forEach(attr => {
-    const valEl = $(`#attr-${attr}`);
-    const barEl = $(`#attr-bar-${attr}`);
-    if (valEl) valEl.textContent = agent.attrs[attr];
-    if (barEl) barEl.style.width = `${(agent.attrs[attr] / 20) * 100}%`;
+  ['raz','ins','pre','prs','fis'].forEach(a => {
+    const v = $(`#attr-${a}`); const b = $(`#attr-bar-${a}`);
+    if (v) v.textContent = agent.attrs[a];
+    if (b) b.style.width = `${(agent.attrs[a] / 12) * 100}%`;
   });
 
-  // Vida
   $('#vida-cur').value = agent.vidaCur;
   $('#vida-max').value = agent.vidaMax;
   updateVidaBar(agent);
 
-  // Barreira Mágica
   const bmMax = calcBmMax(agent);
-  $('#bm-cur').value                    = agent.bmCur;
-  $('#bm-max-display').textContent      = bmMax;
-  $('#bm-formula-result').textContent   = bmMax;
+  $('#bm-cur').value                  = agent.bmCur;
+  $('#bm-max-display').textContent    = bmMax;
+  $('#bm-formula-result').textContent = bmMax;
   updateBmBar(agent);
 
-  // Fonte
   $('#fonte-type').value = agent.fonteType || 'poder';
   renderFontePips(agent);
 
-  // Hexágonos de Fontes de Ação
-  $$('.hex-pip').forEach((hex, i) => {
-    hex.classList.toggle('active', agent.actionSources[i] === true);
+  $$('.hex-pip').forEach((h, i) => h.classList.toggle('active', agent.actionSources[i] === true));
+
+  // Desenvolvimento
+  const devMap = { devAprendizado: ['dev-aprendizado','dev-bar-aprendizado',5], devDesenvolvimento: ['dev-desenvolvimento','dev-bar-desenvolvimento',30], devPotencial: ['dev-potencial','dev-bar-potencial',10] };
+  Object.entries(devMap).forEach(([field, [valId, barId, max]]) => {
+    const v = agent[field] ?? 0;
+    const el = $(`#${valId}`); const b = $(`#${barId}`);
+    if (el) el.textContent = v;
+    if (b)  b.style.width  = `${(v / max) * 100}%`;
   });
 }
 
 function updateVidaBar(agent) {
-  const pct = agent.vidaMax > 0
-    ? Math.min(100, (agent.vidaCur / agent.vidaMax) * 100) : 0;
+  const pct = agent.vidaMax > 0 ? Math.min(100,(agent.vidaCur/agent.vidaMax)*100) : 0;
   $('#bar-vida').style.width = `${pct}%`;
 }
 
 function updateBmBar(agent) {
-  const bmMax = calcBmMax(agent);
-  const pct   = bmMax > 0
-    ? Math.min(100, (agent.bmCur / bmMax) * 100) : 0;
+  const max = calcBmMax(agent);
+  const pct = max > 0 ? Math.min(100,(agent.bmCur/max)*100) : 0;
   $('#bar-bm').style.width              = `${pct}%`;
-  $('#bm-max-display').textContent      = bmMax;
-  $('#bm-formula-result').textContent   = bmMax;
+  $('#bm-max-display').textContent      = max;
+  $('#bm-formula-result').textContent   = max;
 }
 
 function renderFontePips(agent) {
-  const container = $('#fonte-pips-big');
-  container.innerHTML = '';
+  const c = $('#fonte-pips-big');
+  c.innerHTML = '';
   for (let i = 0; i < 10; i++) {
     const btn = document.createElement('button');
     btn.className = `fonte-pip-btn${i < agent.fonteCur ? ' active' : ''}`;
     btn.dataset.index = i;
     btn.textContent   = i + 1;
-    btn.title         = `Fonte ${i + 1}`;
     btn.addEventListener('click', () => {
-      // Clicar no pip já ativo desativa ele (e todos acima)
-      const newVal = i < agent.fonteCur ? i : i + 1;
-      setFonteCur(newVal);
-      const updated = getActiveAgent();
-      renderFontePips(updated);
-      updateSummary(updated);
+      const nv = i < agent.fonteCur ? i : i + 1;
+      setFonteCur(nv);
+      renderFontePips(getActiveAgent());
+      updateSummary(getActiveAgent());
     });
-    container.appendChild(btn);
+    c.appendChild(btn);
   }
 }
 
-/* ══════════════════════════════════════════════
-   ABA 2 — PERÍCIAS
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════
+   ABA 2
+════════════════════════════════════ */
 function populateTab2(agent) {
-  // Cabeçalhos com valor do atributo
-  ['raz','ins','pre','prs','fis'].forEach(attr => {
-    const el = $(`#skill-header-${attr}`);
-    if (el) el.textContent = agent.attrs[attr];
+  ['raz','ins','pre','prs','fis'].forEach(a => {
+    const el = $(`#skill-header-${a}`);
+    if (el) el.textContent = agent.attrs[a];
   });
-
-  // Cada skill row: atualizar total exibido
   $$('.skill-row[data-formula]').forEach(row => {
-    const formula  = row.dataset.formula;
-    const skillId  = row.dataset.skill;
-    const totalEl  = $(`#skill-val-${skillId}`);
-    if (totalEl) totalEl.textContent = calcSkillMod(agent, formula);
+    const el = $(`#skill-val-${row.dataset.skill}`);
+    if (el) el.textContent = calcSkillMod(agent, row.dataset.formula);
   });
 }
 
-/* ══════════════════════════════════════════════
-   ABA 3 — ARSENAL
-══════════════════════════════════════════════ */
+export function populateRollHistory(agent) {
+  const list  = $('#roll-history-list');
+  const empty = $('#roll-history-empty');
+  const hist  = agent.rollHistory || [];
+
+  // Clear existing items (keep the empty placeholder)
+  $$('.roll-history__item', list).forEach(i => i.remove());
+
+  if (!hist.length) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  hist.forEach(entry => {
+    const li = document.createElement('li');
+    li.className = 'roll-history__item';
+    const scoreClass = entry.total >= 19 ? 'score--high' : entry.total >= 12 ? 'score--good' : entry.total <= 6 ? 'score--low' : '';
+    li.innerHTML = `<span class="roll-history__name">${esc(entry.skill)}</span>
+                    <span class="roll-history__score${scoreClass ? ` ${scoreClass}` : ''}">${entry.total}</span>`;
+    list.appendChild(li);
+  });
+}
+
+/* ════════════════════════════════════
+   ABA 3
+════════════════════════════════════ */
 function populateTab3(agent) {
   $('#rd-val').value      = agent.rd ?? 0;
   $('#credits-val').value = agent.credits ?? 0;
+
+  // RD tier presets
+  $$('.rd-preset').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tier === (agent.rdTier || 'comum'));
+  });
 
   renderEquipmentTable(agent);
 }
 
 export function renderEquipmentTable(agent) {
-  const tbody  = $('#equipment-body');
-  const empty  = $('#equipment-empty');
+  const tbody = $('#equipment-body');
+  const empty = $('#equipment-empty');
   tbody.innerHTML = '';
-
-  if (!agent.equipment || agent.equipment.length === 0) {
-    empty.style.display = '';
-    return;
-  }
+  if (!agent.equipment?.length) { empty.style.display = ''; return; }
   empty.style.display = 'none';
-
-  agent.equipment.forEach(item => {
-    tbody.appendChild(buildEquipmentRow(item));
-  });
+  agent.equipment.forEach(item => tbody.appendChild(buildEquipmentRow(item)));
 }
 
 function buildEquipmentRow(item) {
   const tr = document.createElement('tr');
   tr.dataset.equipId = item.id;
-
-  const fields = [
-    { key: 'name',        cls: '',      placeholder: 'Nome...' },
-    { key: 'description', cls: '',      placeholder: 'Descrição...' },
-    { key: 'market',      cls: '--sm',  placeholder: '—' },
-    { key: 'damage',      cls: '--sm',  placeholder: '—' },
-    { key: 'range',       cls: '--sm',  placeholder: '—' },
-    { key: 'price',       cls: '--sm',  placeholder: '—' },
-    { key: 'qty',         cls: '--xs',  placeholder: '1', type: 'number' },
-  ];
-
-  fields.forEach(f => {
-    const td    = document.createElement('td');
-    const input = document.createElement('input');
-    input.className   = `eq-input eq-input${f.cls}`;
-    input.type        = f.type || 'text';
-    input.value       = item[f.key] ?? '';
-    input.placeholder = f.placeholder;
-    input.addEventListener('change', () => {
-      updateEquipmentField(item.id, f.key, input.value);
-    });
-    td.appendChild(input);
+  [
+    { key:'name',        cls:'',     ph:'Nome...' },
+    { key:'description', cls:'',     ph:'Descrição...' },
+    { key:'market',      cls:'--sm', ph:'—' },
+    { key:'damage',      cls:'--sm', ph:'—' },
+    { key:'range',       cls:'--sm', ph:'—' },
+    { key:'price',       cls:'--sm', ph:'—' },
+    { key:'qty',         cls:'--xs', ph:'1', type:'number' },
+  ].forEach(f => {
+    const td = document.createElement('td');
+    const inp = document.createElement('input');
+    inp.className   = `eq-input eq-input${f.cls}`;
+    inp.type        = f.type || 'text';
+    inp.value       = item[f.key] ?? '';
+    inp.placeholder = f.ph;
+    inp.addEventListener('change', () => updateEquipmentField(item.id, f.key, inp.value));
+    td.appendChild(inp);
     tr.appendChild(td);
   });
-
-  // Botão remover
   const tdBtn = document.createElement('td');
   const btn   = document.createElement('button');
-  btn.className   = 'btn-remove-row';
-  btn.textContent = '✕';
-  btn.title       = 'Remover item';
+  btn.className = 'btn-remove-row'; btn.textContent = '✕';
   btn.addEventListener('click', () => {
-    removeEquipment(item.id);
-    tr.remove();
-    const agent = getActiveAgent();
-    if (agent.equipment.length === 0) {
-      $('#equipment-empty').style.display = '';
-    }
+    removeEquipment(item.id); tr.remove();
+    if (!getActiveAgent().equipment.length) $('#equipment-empty').style.display = '';
   });
   tdBtn.appendChild(btn);
   tr.appendChild(tdBtn);
-
   return tr;
 }
 
-/* ══════════════════════════════════════════════
-   ABA 4 — HABILIDADES
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════
+   ABA 4 — Habilidades com modo edição
+════════════════════════════════════ */
 function populateTab4(agent) {
   const grid  = $('#abilities-grid');
   const empty = $('#abilities-empty');
-
-  // Limpar cards existentes
   $$('.ability-card', grid).forEach(c => c.remove());
-
-  if (!agent.abilities || agent.abilities.length === 0) {
-    empty.style.display = '';
-    return;
-  }
+  if (!agent.abilities?.length) { empty.style.display = ''; return; }
   empty.style.display = 'none';
-
-  agent.abilities.forEach(ability => {
-    grid.insertBefore(buildAbilityCard(ability), empty);
-  });
+  agent.abilities.forEach(a => grid.insertBefore(buildAbilityCard(a), empty));
 }
 
 function buildAbilityCard(ability) {
   const card = document.createElement('div');
-  card.className        = 'ability-card';
+  card.className = 'ability-card';
   card.dataset.abilityId = ability.id;
   card.dataset.type      = ability.type || 'ordem';
 
+  const typeLabel = { ordem: 'Ordem', ruina: 'Ruína', adrenalina: 'Adrenalina' }[ability.type] || ability.type;
+
   card.innerHTML = `
-    <div class="ability-card__header">
-      <input class="ability-name-input" type="text"
-             placeholder="Nome da habilidade..."
-             value="${escapeHtml(ability.name || '')}" />
-      <select class="ability-type-select">
-        <option value="ordem"      ${ability.type === 'ordem'      ? 'selected' : ''}>Ordem</option>
-        <option value="ruina"      ${ability.type === 'ruina'      ? 'selected' : ''}>Ruína</option>
-        <option value="adrenalina" ${ability.type === 'adrenalina' ? 'selected' : ''}>Adrenalina</option>
-      </select>
+    <div class="ability-card__top-bar">
+      <!-- view mode -->
+      <span class="ability-name-view view-only">${esc(ability.name || 'Sem nome')}</span>
+      <!-- edit mode -->
+      <input class="ability-name-input edit-only" type="text"
+             placeholder="Nome da habilidade..." value="${esc(ability.name || '')}" />
+
+      <div class="ability-card__actions">
+        <span class="ability-type-badge ability-type-badge--${ability.type} view-only">${typeLabel}</span>
+        <select class="ability-type-select edit-only">
+          <option value="ordem"      ${ability.type==='ordem'      ?'selected':''}>Ordem</option>
+          <option value="ruina"      ${ability.type==='ruina'      ?'selected':''}>Ruína</option>
+          <option value="adrenalina" ${ability.type==='adrenalina' ?'selected':''}>Adrenalina</option>
+        </select>
+        <button class="ability-edit-btn" title="Editar">✎ Editar</button>
+        <button class="ability-remove" title="Remover">✕</button>
+      </div>
     </div>
+
     <p class="ability-label">Descrição da Técnica</p>
-    <textarea class="ability-textarea" rows="3"
-              placeholder="Descreva o efeito...">${escapeHtml(ability.description || '')}</textarea>
+    <div class="ability-field-view view-only${!ability.description ? ' empty' : ''}">${esc(ability.description || 'Sem descrição.')}</div>
+    <textarea class="ability-textarea edit-only" rows="3" placeholder="Descreva o efeito...">${esc(ability.description || '')}</textarea>
+
     <p class="ability-label">Refinamento</p>
-    <textarea class="ability-textarea" rows="2"
-              placeholder="Melhoria ou variação...">${escapeHtml(ability.refinement || '')}</textarea>
-    <button class="ability-remove" title="Remover habilidade">✕</button>
+    <div class="ability-field-view view-only${!ability.refinement ? ' empty' : ''}">${esc(ability.refinement || 'Sem refinamento.')}</div>
+    <textarea class="ability-textarea edit-only" rows="2" placeholder="Melhoria ou variação...">${esc(ability.refinement || '')}</textarea>
   `;
 
-  // Bindings
   const nameInput  = card.querySelector('.ability-name-input');
+  const nameView   = card.querySelector('.ability-name-view');
   const typeSelect = card.querySelector('.ability-type-select');
-  const [descArea, refArea] = card.querySelectorAll('.ability-textarea');
+  const typeBadge  = card.querySelector('.ability-type-badge');
+  const [descView, refView]   = card.querySelectorAll('.ability-field-view');
+  const [descArea, refArea]   = card.querySelectorAll('.ability-textarea');
+  const editBtn    = card.querySelector('.ability-edit-btn');
   const removeBtn  = card.querySelector('.ability-remove');
 
-  nameInput.addEventListener('input', () => {
-    updateAbilityField(ability.id, 'name', nameInput.value);
+  function saveOnBlur() {
+    const name = nameInput.value;
+    const type = typeSelect.value;
+    const desc = descArea.value;
+    const ref  = refArea.value;
+
+    updateAbilityField(ability.id, 'name',        name);
+    updateAbilityField(ability.id, 'type',        type);
+    updateAbilityField(ability.id, 'description', desc);
+    updateAbilityField(ability.id, 'refinement',  ref);
+
+    // Update view-mode display
+    nameView.textContent   = name || 'Sem nome';
+    typeSelect.value       = type;
+    typeBadge.textContent  = { ordem:'Ordem', ruina:'Ruína', adrenalina:'Adrenalina' }[type] || type;
+    typeBadge.className    = `ability-type-badge ability-type-badge--${type} view-only`;
+    card.dataset.type      = type;
+
+    descView.textContent   = desc || 'Sem descrição.';
+    descView.classList.toggle('empty', !desc);
+    refView.textContent    = ref  || 'Sem refinamento.';
+    refView.classList.toggle('empty', !ref);
+  }
+
+  // Blur-to-save on each editable field
+  [nameInput, typeSelect, descArea, refArea].forEach(el => {
+    el.addEventListener('blur', () => {
+      // Small delay so clicking editBtn doesn't double-fire
+      setTimeout(saveOnBlur, 100);
+    });
   });
-  typeSelect.addEventListener('change', () => {
-    card.dataset.type = typeSelect.value;
-    updateAbilityField(ability.id, 'type', typeSelect.value);
+
+  editBtn.addEventListener('click', () => {
+    const isEditing = card.classList.toggle('editing');
+    editBtn.textContent = isEditing ? '✓ Pronto' : '✎ Editar';
+    editBtn.classList.toggle('editing', isEditing);
+    if (isEditing) nameInput.focus();
+    else saveOnBlur();
   });
-  descArea.addEventListener('input', () => {
-    updateAbilityField(ability.id, 'description', descArea.value);
-  });
-  refArea.addEventListener('input', () => {
-    updateAbilityField(ability.id, 'refinement', refArea.value);
-  });
+
   removeBtn.addEventListener('click', () => {
     removeAbility(ability.id);
     card.remove();
-    const agent = getActiveAgent();
-    if (agent.abilities.length === 0) {
-      $('#abilities-empty').style.display = '';
-    }
+    if (!getActiveAgent().abilities.length) $('#abilities-empty').style.display = '';
   });
 
   return card;
 }
 
-/* ══════════════════════════════════════════════
-   ABA 5 — ANOTAÇÕES
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════
+   ABA 5
+════════════════════════════════════ */
 function populateTab5(agent) {
   const grid  = $('#notes-grid');
   const empty = $('#notes-empty');
-
   $$('.note-block', grid).forEach(b => b.remove());
-
-  if (!agent.notes || agent.notes.length === 0) {
-    empty.style.display = '';
-    return;
-  }
+  if (!agent.notes?.length) { empty.style.display = ''; return; }
   empty.style.display = 'none';
-
-  agent.notes.forEach(note => {
-    grid.insertBefore(buildNoteBlock(note), empty);
-  });
+  agent.notes.forEach(n => grid.insertBefore(buildNoteBlock(n), empty));
 }
 
 function buildNoteBlock(note) {
   const block = document.createElement('div');
-  block.className    = 'note-block';
+  block.className = 'note-block';
   block.dataset.noteId = note.id;
-
   block.innerHTML = `
-    <input class="note-title-input" type="text"
-           placeholder="Título da anotação..."
-           value="${escapeHtml(note.title || '')}" />
-    <textarea class="note-content-textarea"
-              placeholder="Escreva suas anotações...">${escapeHtml(note.content || '')}</textarea>
-    <button class="note-remove" title="Remover bloco">✕</button>
-  `;
+    <input class="note-title-input" type="text" placeholder="Título..." value="${esc(note.title||'')}" />
+    <textarea class="note-content-textarea" placeholder="Anotações...">${esc(note.content||'')}</textarea>
+    <button class="note-remove" title="Remover">✕</button>`;
 
-  const titleInput   = block.querySelector('.note-title-input');
-  const contentArea  = block.querySelector('.note-content-textarea');
-  const removeBtn    = block.querySelector('.note-remove');
-
-  titleInput.addEventListener('input', () => {
-    updateNoteField(note.id, 'title', titleInput.value);
+  block.querySelector('.note-title-input').addEventListener('input', e => updateNoteField(note.id,'title',e.target.value));
+  block.querySelector('.note-content-textarea').addEventListener('input', e => updateNoteField(note.id,'content',e.target.value));
+  block.querySelector('.note-remove').addEventListener('click', () => {
+    removeNote(note.id); block.remove();
+    if (!getActiveAgent().notes.length) $('#notes-empty').style.display = '';
   });
-  contentArea.addEventListener('input', () => {
-    updateNoteField(note.id, 'content', contentArea.value);
-  });
-  removeBtn.addEventListener('click', () => {
-    removeNote(note.id);
-    block.remove();
-    const agent = getActiveAgent();
-    if (agent.notes.length === 0) {
-      $('#notes-empty').style.display = '';
-    }
-  });
-
   return block;
 }
 
-/* ══════════════════════════════════════════════
+/* ════════════════════════════════════
    MODAIS
-══════════════════════════════════════════════ */
+════════════════════════════════════ */
+export function showNewAgentModal()  { $('#new-agent-name').value=''; $('#new-agent-title').value=''; $('#modal-new-agent').hidden=false; $('#new-agent-name').focus(); }
+export function hideNewAgentModal()  { $('#modal-new-agent').hidden=true; }
 
-// ── Modal: Novo Agente ──
-export function showNewAgentModal() {
-  $('#new-agent-name').value  = '';
-  $('#new-agent-title').value = '';
-  $('#modal-new-agent').hidden = false;
-  $('#new-agent-name').focus();
-}
-export function hideNewAgentModal() {
-  $('#modal-new-agent').hidden = true;
-}
-
-// ── Modal: Confirmar Delete ──
 let _pendingDeleteId = null;
-export function showDeleteModal(id, name) {
-  _pendingDeleteId = id;
-  $('#delete-agent-name-display').textContent = name || 'este agente';
-  $('#modal-confirm-delete').hidden = false;
-}
-export function hideDeleteModal() {
-  _pendingDeleteId = null;
-  $('#modal-confirm-delete').hidden = true;
-}
+export function showDeleteModal(id, name) { _pendingDeleteId=id; $('#delete-agent-name-display').textContent=name||'agente'; $('#modal-confirm-delete').hidden=false; }
+export function hideDeleteModal()         { _pendingDeleteId=null; $('#modal-confirm-delete').hidden=true; }
 export function confirmDelete() {
   if (!_pendingDeleteId) return;
-
-  const isOnSheet = (getActiveAgent()?.id === _pendingDeleteId);
-
+  const onSheet = getActiveAgent()?.id === _pendingDeleteId;
   deleteAgent(_pendingDeleteId);
   hideDeleteModal();
-  showToast('Agente deletado.', 'success');
-
-  if (isOnSheet) {
-    closeSheet();
-  } else {
-    renderRoster();
-  }
+  showToast('Agente deletado.','success');
+  if (onSheet) closeSheet(); else renderRoster();
   _pendingDeleteId = null;
 }
 
-/* ══════════════════════════════════════════════
-   BINDINGS GLOBAIS DA FICHA
-   Todos os eventos persistentes que não dependem
-   de qual agente está aberto.
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════
+   BINDINGS — FICHA
+════════════════════════════════════ */
 export function bindSheetEvents() {
 
-  // ── Tabs ──
-  $$('.tab').forEach(tab => {
-    tab.addEventListener('click', () => activateTab(Number(tab.dataset.tab)));
-  });
+  // Tabs
+  $$('.tab').forEach(t => t.addEventListener('click', () => activateTab(Number(t.dataset.tab))));
 
-  // ── Voltar ao roster ──
+  // Header
   $('#btn-back').addEventListener('click', closeSheet);
+  $('#btn-export').addEventListener('click', () => { exportAgent(); showToast('Ficha exportada!','success'); });
+  $('#btn-delete-agent').addEventListener('click', () => { const a=getActiveAgent(); if(a) showDeleteModal(a.id,a.name); });
 
-  // ── Exportar ──
-  $('#btn-export').addEventListener('click', () => {
-    exportAgent();
-    showToast('Ficha exportada!', 'success');
+  // ── Foto: clique para trocar ──
+  $('#photo-wrapper').addEventListener('click', e => {
+    if (e.target.classList.contains('agent-photo') || e.target.id === 'agent-photo') return;
+    if (!e.target.closest('.photo-drag-hint')) $('#photo-input').click();
   });
-
-  // ── Deletar (dentro da ficha) ──
-  $('#btn-delete-agent').addEventListener('click', () => {
-    const agent = getActiveAgent();
-    if (agent) showDeleteModal(agent.id, agent.name);
-  });
-
-  // ── ABA 0: upload de foto ──
-  $('#photo-wrapper').addEventListener('click', () => $('#photo-input').click());
   $('#photo-input').addEventListener('change', handlePhotoUpload);
 
-  // ── ABA 0: campos de texto (input/textarea) ──
-  $$('[data-field]', $('#view-sheet')).forEach(el => {
-    const event = el.tagName === 'TEXTAREA' ? 'input' : 'change';
-    el.addEventListener(event, () => {
+  // ── Foto: drag to reposition ──
+  bindPhotoDrag();
+
+  // ── Campos data-field ──
+  $$('[data-field]','#view-sheet').forEach(el => {
+    const ev = el.tagName==='TEXTAREA' ? 'input' : 'change';
+    el.addEventListener(ev, () => {
       const field = el.dataset.field;
       if (!field) return;
-
-      // Campos numéricos
-      const numFields = ['vidaCur','vidaMax','bmCur','rd','credits'];
+      const numFields = ['vidaCur','vidaMax','bmCur','rd','credits','age','birthdate'];
       const val = numFields.includes(field) ? Number(el.value) : el.value;
-
       setField(field, val);
-
       const agent = getActiveAgent();
-
-      // Recalculos dependentes
-      if (field === 'vidaCur' || field === 'vidaMax') {
-        updateVidaBar(agent);
-        updateSummary(agent);
-      }
-      if (field === 'bmCur') {
-        setBmCur(val);
-        updateBmBar(agent);
-        updateSummary(agent);
-      }
-      if (field === 'name') {
-        $('#sheet-agent-name').textContent = val || '—';
-      }
-      if (field === 'title') {
-        $('#sheet-agent-title').textContent = val || '—';
-      }
+      if (field==='vidaCur'||field==='vidaMax') { updateVidaBar(agent); updateSummary(agent); }
+      if (field==='bmCur')  { setBmCur(val); updateBmBar(agent); updateSummary(agent); }
+      if (field==='name')   { $('#sheet-agent-name').textContent = val||'—'; }
+      if (field==='title')  { $('#sheet-agent-title').textContent= val||'—'; }
     });
   });
 
-  // ── ABA 1: steppers de atributos ──
+  // ── Steppers de atributo ──
   $$('.stepper-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const target    = btn.dataset.target;
-      const direction = btn.dataset.action;
-      stepAttr(target, direction);
+      const target = btn.dataset.target;
+      if (!target) return;
+      stepAttr(target, btn.dataset.action);
       const agent = getActiveAgent();
-
-      // Atualizar display do atributo
-      $(`#attr-${target}`).textContent  = agent.attrs[target];
-      $(`#attr-bar-${target}`).style.width = `${(agent.attrs[target] / 20) * 100}%`;
-
-      // BM depende de RAZ e INS
-      if (target === 'raz' || target === 'ins') {
+      $(`#attr-${target}`).textContent     = agent.attrs[target];
+      $(`#attr-bar-${target}`).style.width = `${(agent.attrs[target]/12)*100}%`;
+      if (target==='raz'||target==='ins') {
         updateBmBar(agent);
-        // Garantir que bmCur não ultrapasse o novo bmMax
         const newMax = calcBmMax(agent);
-        if (agent.bmCur > newMax) {
-          setBmCur(newMax);
-          $('#bm-cur').value = newMax;
-          updateBmBar(getActiveAgent());
-        }
+        if (agent.bmCur > newMax) { setBmCur(newMax); $('#bm-cur').value=newMax; updateBmBar(getActiveAgent()); }
       }
-
-      // Atualizar resumo da Aba 0
       updateSummary(agent);
-
-      // Atualizar cabeçalhos e totais de perícias
       populateTab2(agent);
     });
   });
 
-  // ── ABA 1: contadores de RD e Créditos ──
+  // ── Botões rápidos Vida / BM ──
+  $$('.sqb[data-target]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target; // 'vida' | 'bm'
+      const action = btn.dataset.action; // 'max' | 'inc' | 'dec' | 'delta'
+      const agent  = getActiveAgent();
+      if (!agent) return;
+
+      if (target === 'vida') {
+        let cur = agent.vidaCur, max = agent.vidaMax;
+        if (action==='max')   cur = max;
+        if (action==='inc')   cur = Math.min(max, cur+1);
+        if (action==='dec')   cur = Math.max(0,   cur-1);
+        if (action==='delta') {
+          const raw = $('#vida-delta-input').value.trim();
+          const n   = parseInt(raw, 10);
+          if (!isNaN(n)) cur = Math.max(0, Math.min(max, cur+n));
+          $('#vida-delta-input').value = '';
+        }
+        setVidaCur(cur);
+        $('#vida-cur').value = getActiveAgent().vidaCur;
+        updateVidaBar(getActiveAgent());
+        updateSummary(getActiveAgent());
+      }
+
+      if (target === 'bm') {
+        const max = calcBmMax(agent);
+        let cur = agent.bmCur;
+        if (action==='max')   cur = max;
+        if (action==='inc')   cur = Math.min(max, cur+1);
+        if (action==='dec')   cur = Math.max(0,   cur-1);
+        if (action==='delta') {
+          const raw = $('#bm-delta-input').value.trim();
+          const n   = parseInt(raw, 10);
+          if (!isNaN(n)) cur = Math.max(0, Math.min(max, cur+n));
+          $('#bm-delta-input').value = '';
+        }
+        setBmCur(cur);
+        $('#bm-cur').value = getActiveAgent().bmCur;
+        updateBmBar(getActiveAgent());
+        updateSummary(getActiveAgent());
+      }
+    });
+  });
+
+  // Enter nos inputs delta
+  ['#vida-delta-input','#bm-delta-input'].forEach(sel => {
+    const inp = $(sel);
+    if (!inp) return;
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const target = sel.includes('vida') ? 'vida' : 'bm';
+        $$(`.sqb[data-target="${target}"][data-action="delta"]`).forEach(b => b.click());
+      }
+    });
+  });
+
+  // ── Steppers Desenvolvimento ──
+  $$('[data-dev-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const field = btn.dataset.devField;
+      const dir   = btn.dataset.devAction;
+      stepDev(field, dir);
+      const agent = getActiveAgent();
+      const limits = { devAprendizado:5, devDesenvolvimento:30, devPotencial:10 };
+      const idMap  = { devAprendizado:'dev-aprendizado', devDesenvolvimento:'dev-desenvolvimento', devPotencial:'dev-potencial' };
+      const barMap = { devAprendizado:'dev-bar-aprendizado', devDesenvolvimento:'dev-bar-desenvolvimento', devPotencial:'dev-bar-potencial' };
+      const v = agent[field] ?? 0;
+      $(`#${idMap[field]}`).textContent   = v;
+      $(`#${barMap[field]}`).style.width  = `${(v/limits[field])*100}%`;
+    });
+  });
+
+  // ── Contadores Arsenal ──
   $$('.counter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const target = btn.dataset.target;
-      const field  = target === 'rd' ? 'rd' : 'credits';
-      const inputEl = target === 'rd' ? $('#rd-val') : $('#credits-val');
-      const current = Number(inputEl.value) || 0;
-      const next    = btn.dataset.action === 'inc' ? current + 1 : Math.max(0, current - 1);
+      const target  = btn.dataset.target;
+      const field   = target==='rd' ? 'rd' : 'credits';
+      const inputEl = target==='rd' ? $('#rd-val') : $('#credits-val');
+      const next    = btn.dataset.action==='inc' ? (Number(inputEl.value)||0)+1 : Math.max(0,(Number(inputEl.value)||0)-1);
       inputEl.value = next;
       setField(field, next);
     });
   });
 
-  // ── ABA 1: hexágonos de Fontes de Ação ──
-  $$('.hex-pip').forEach(hex => {
-    hex.addEventListener('click', () => {
-      const index = Number(hex.dataset.index);
-      toggleActionSource(index);
-      const agent = getActiveAgent();
-      hex.classList.toggle('active', agent.actionSources[index]);
+  // ── RD Presets ──
+  $$('.rd-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rd   = Number(btn.dataset.rd);
+      const tier = btn.dataset.tier;
+      setField('rd', rd);
+      setField('rdTier', tier);
+      $('#rd-val').value = rd;
+      $$('.rd-preset').forEach(b => b.classList.toggle('active', b.dataset.tier===tier));
     });
   });
 
-  // ── ABA 1: tipo de fonte ──
-  $('#fonte-type').addEventListener('change', (e) => {
-    setField('fonteType', e.target.value);
+  // ── Hexágonos Fontes de Ação ──
+  $$('.hex-pip').forEach(h => {
+    h.addEventListener('click', () => {
+      toggleActionSource(Number(h.dataset.index));
+      h.classList.toggle('active', getActiveAgent().actionSources[Number(h.dataset.index)]);
+    });
   });
 
-  // ── ABA 3: adicionar equipamento ──
+  // ── Tipo de Fonte ──
+  $('#fonte-type').addEventListener('change', e => setField('fonteType', e.target.value));
+
+  // ── Arsenal: adicionar item ──
   $('#btn-add-equipment').addEventListener('click', () => {
-    const item  = addEquipment();
+    const item = addEquipment();
     const tbody = $('#equipment-body');
-    const empty = $('#equipment-empty');
-    empty.style.display = 'none';
+    $('#equipment-empty').style.display = 'none';
     tbody.appendChild(buildEquipmentRow(item));
   });
 
-  // ── ABA 4: adicionar habilidade ──
+  // ── Habilidades: adicionar ──
   $('#btn-add-ability').addEventListener('click', () => {
-    const ability = addAbility();
-    const grid    = $('#abilities-grid');
-    const empty   = $('#abilities-empty');
-    empty.style.display = 'none';
-    grid.insertBefore(buildAbilityCard(ability), empty);
+    const a    = addAbility();
+    const grid = $('#abilities-grid');
+    $('#abilities-empty').style.display = 'none';
+    grid.insertBefore(buildAbilityCard(a), $('#abilities-empty'));
   });
 
-  // ── ABA 5: adicionar nota ──
+  // ── Notas: adicionar ──
   $('#btn-add-note').addEventListener('click', () => {
-    const note  = addNote();
-    const grid  = $('#notes-grid');
-    const empty = $('#notes-empty');
-    empty.style.display = 'none';
-    grid.insertBefore(buildNoteBlock(note), empty);
+    const n    = addNote();
+    const grid = $('#notes-grid');
+    $('#notes-empty').style.display = 'none';
+    grid.insertBefore(buildNoteBlock(n), $('#notes-empty'));
+  });
+
+  // ── Limpar histórico de rolagens ──
+  $('#btn-clear-history').addEventListener('click', () => {
+    clearRollHistory();
+    populateRollHistory(getActiveAgent());
+    // Limpar display atual
+    $('#roll-result-skill').textContent = '—';
+    $('#roll-d1').textContent           = '—';
+    $('#roll-d2').textContent           = '—';
+    $('#roll-mod').textContent          = '0';
+    $('#roll-total').textContent        = '—';
+    $('#roll-total').style.color        = '';
   });
 }
 
-/* ══════════════════════════════════════════════
-   BINDINGS DO ROSTER
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════
+   BINDINGS — ROSTER
+════════════════════════════════════ */
 export function bindRosterEvents() {
-
-  // ── Novo agente ──
   $('#btn-new-agent').addEventListener('click', showNewAgentModal);
   $('#modal-close-new').addEventListener('click', hideNewAgentModal);
   $('#modal-cancel-new').addEventListener('click', hideNewAgentModal);
-  $('#modal-new-agent').addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) hideNewAgentModal();
-  });
+  $('#modal-new-agent').addEventListener('click', e => { if(e.target===e.currentTarget) hideNewAgentModal(); });
 
   $('#modal-confirm-new').addEventListener('click', () => {
     const name  = $('#new-agent-name').value.trim();
     const title = $('#new-agent-title').value.trim();
-    if (!name) {
-      $('#new-agent-name').focus();
-      showToast('Informe um nome para o agente.', 'error');
-      return;
-    }
+    if (!name) { $('#new-agent-name').focus(); showToast('Informe um nome.','error'); return; }
     const agent = createAgent(name, title);
     hideNewAgentModal();
     openSheet(agent.id);
   });
+  $('#new-agent-name').addEventListener('keydown', e => { if(e.key==='Enter') $('#modal-confirm-new').click(); });
 
-  // Enter no modal cria o agente
-  $('#new-agent-name').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') $('#modal-confirm-new').click();
-  });
-
-  // ── Delete modal ──
   $('#modal-close-delete').addEventListener('click', hideDeleteModal);
   $('#modal-cancel-delete').addEventListener('click', hideDeleteModal);
-  $('#modal-confirm-delete').addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) hideDeleteModal();
-  });
+  $('#modal-confirm-delete').addEventListener('click', e => { if(e.target===e.currentTarget) hideDeleteModal(); });
   $('#modal-confirm-delete-btn').addEventListener('click', confirmDelete);
 
-  // ── Importar ──
   $('#btn-import').addEventListener('click', () => $('#import-file-input').click());
-  $('#import-file-input').addEventListener('change', async (e) => {
+  $('#import-file-input').addEventListener('change', async e => {
     const file = e.target.files[0];
     if (!file) return;
-
-    const result = await importAgentFromFile(file, {
-      onConflict: (existingName) =>
-        confirm(`Já existe um agente chamado "${existingName}" com o mesmo ID.\n\nDeseja substituí-lo?`),
-    });
-
-    // Limpar input para permitir reimportar o mesmo arquivo
+    const result = await importAgentFromFile(file, { onConflict: name => confirm(`"${name}" já existe. Substituir?`) });
     e.target.value = '';
-
-    if (!result.success) {
-      showToast('Erro ao importar: arquivo inválido.', 'error');
-      return;
-    }
-
-    showToast(
-      result.conflict
-        ? `"${result.agent.name}" substituído com sucesso!`
-        : `"${result.agent.name}" importado com sucesso!`,
-      'success'
-    );
+    if (!result.success) { showToast('Arquivo inválido.','error'); return; }
+    showToast(`"${result.agent.name}" importado!`,'success');
     renderRoster();
   });
 }
 
-/* ══════════════════════════════════════════════
-   UPLOAD DE FOTO
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════
+   FOTO: UPLOAD + DRAG TO REPOSITION
+════════════════════════════════════ */
 function handlePhotoUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
-  reader.onload = (ev) => {
-    const base64 = ev.target.result;
-    setField('photo', base64);
-
-    const photoEl = $('#agent-photo');
-    photoEl.src           = base64;
-    photoEl.style.display = 'block';
-
-    showToast('Foto atualizada!', 'success');
+  reader.onload = ev => {
+    const b64   = ev.target.result;
+    setField('photo', b64);
+    setPhotoOffset(50, 50); // reset position on new upload
+    const photo   = $('#agent-photo');
+    const wrapper = $('#photo-wrapper');
+    photo.src                  = b64;
+    photo.style.objectPosition = '50% 50%';
+    photo.style.display        = 'block';
+    wrapper.classList.add('has-photo');
+    showToast('Foto atualizada!','success');
   };
   reader.readAsDataURL(file);
-
-  // Limpar input
   e.target.value = '';
 }
 
-/* ══════════════════════════════════════════════
-   HELPER: escape HTML
-══════════════════════════════════════════════ */
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+function bindPhotoDrag() {
+  const wrapper = $('#photo-wrapper');
+  const photo   = $('#agent-photo');
+  let dragging  = false;
+  let startX, startY, startOX, startOY;
+
+  wrapper.addEventListener('mousedown', e => {
+    const agent = getActiveAgent();
+    if (!agent?.photo) return;
+    // Only drag with left button
+    if (e.button !== 0) return;
+    dragging = true;
+    startX   = e.clientX;
+    startY   = e.clientY;
+    startOX  = agent.photoOffsetX ?? 50;
+    startOY  = agent.photoOffsetY ?? 50;
+    photo.classList.add('dragging');
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx  = e.clientX - startX;
+    const dy  = e.clientY - startY;
+    const W   = wrapper.offsetWidth;
+    const H   = wrapper.offsetHeight;
+    const newX = Math.max(0, Math.min(100, startOX - (dx / W) * 100));
+    const newY = Math.max(0, Math.min(100, startOY - (dy / H) * 100));
+    photo.style.objectPosition = `${newX}% ${newY}%`;
+  });
+
+  document.addEventListener('mouseup', e => {
+    if (!dragging) return;
+    dragging = false;
+    photo.classList.remove('dragging');
+    // Persist final position
+    const pos = photo.style.objectPosition.match(/([\d.]+)%\s+([\d.]+)%/);
+    if (pos) setPhotoOffset(parseFloat(pos[1]), parseFloat(pos[2]));
+  });
+
+  // Touch support
+  wrapper.addEventListener('touchstart', e => {
+    const agent = getActiveAgent();
+    if (!agent?.photo) return;
+    const t  = e.touches[0];
+    dragging = true;
+    startX   = t.clientX; startY  = t.clientY;
+    startOX  = agent.photoOffsetX ?? 50;
+    startOY  = agent.photoOffsetY ?? 50;
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t  = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    const W  = wrapper.offsetWidth;
+    const H  = wrapper.offsetHeight;
+    const newX = Math.max(0, Math.min(100, startOX - (dx / W) * 100));
+    const newY = Math.max(0, Math.min(100, startOY - (dy / H) * 100));
+    photo.style.objectPosition = `${newX}% ${newY}%`;
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    const pos = photo.style.objectPosition.match(/([\d.]+)%\s+([\d.]+)%/);
+    if (pos) setPhotoOffset(parseFloat(pos[1]), parseFloat(pos[2]));
+  });
+}
+
+/* ── helper ── */
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
