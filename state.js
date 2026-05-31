@@ -314,19 +314,6 @@ export function exportAgentTxt(id) {
   const fonteTypes   = { poder: 'Poder', corrupcao: 'Corrupção', adrenalina: 'Adrenalina' };
   const abilityTypes = { ordem: 'Ordem', ruina: 'Ruína', adrenalina: 'Adrenalina' };
 
-  const skillMod = (formula) => {
-    const a = agent.attrs;
-    const map = {
-      fis: a.fis, ins: a.ins, raz: a.raz, pre: a.pre, prs: a.prs,
-      pre_fis: Math.floor((a.pre + a.fis) / 2),
-      pre_raz: Math.floor((a.pre + a.raz) / 2),
-      raz_ins: Math.floor((a.raz + a.ins) / 2),
-      pre_ins: Math.floor((a.pre + a.ins) / 2),
-      raz_prs: Math.floor((a.raz + a.prs) / 2),
-    };
-    return map[formula] ?? 0;
-  };
-
   const lines = [];
   const L = (...args) => lines.push(...args);
 
@@ -364,41 +351,6 @@ export function exportAgentTxt(id) {
     pad('Aprendizado',     `${agent.devAprendizado  ?? 0} / 5`),
     pad('Desenvolvimento', `${agent.devDesenvolvimento ?? 0} / 30`),
     pad('Potencial Latente', `${agent.devPotencial ?? 0} / 10`),
-    '',
-    line('─'),
-    '  PERÍCIAS',
-    line('─'),
-    '  — Físico —',
-    pad('Atletismo',          `2d10+${skillMod('fis')} (${skillMod('fis')})`),
-    pad('Força',              `2d10+${skillMod('fis')} (${skillMod('fis')})`),
-    pad('Resistência Física', `2d10+${skillMod('fis')} (${skillMod('fis')})`),
-    '',
-    '  — Instinto —',
-    pad('Sobrevivência', `2d10+${skillMod('ins')} (${skillMod('ins')})`),
-    pad('Intuição',      `2d10+${skillMod('ins')} (${skillMod('ins')})`),
-    pad('Percepção',     `2d10+${skillMod('ins')} (${skillMod('ins')})`),
-    '',
-    '  — Razão —',
-    pad('Tecnologia',  `2d10+${skillMod('raz')} (${skillMod('raz')})`),
-    pad('Raciocínio',  `2d10+${skillMod('raz')} (${skillMod('raz')})`),
-    '',
-    '  — Precisão —',
-    pad('Prestidigitação', `2d10+${skillMod('pre')} (${skillMod('pre')})`),
-    '',
-    '  — Presença —',
-    pad('Furtividade', `2d10+${skillMod('prs')} (${skillMod('prs')})`),
-    pad('Engano',      `2d10+${skillMod('prs')} (${skillMod('prs')})`),
-    pad('Presença',    `2d10+${skillMod('prs')} (${skillMod('prs')})`),
-    '',
-    '  — Híbridos —',
-    pad('Redirecionamento',   `2d10+${skillMod('pre_fis')} (${skillMod('pre_fis')})`),
-    pad('Medicina',           `2d10+${skillMod('pre_raz')} (${skillMod('pre_raz')})`),
-    pad('Confecção e Reparo', `2d10+${skillMod('pre_raz')} (${skillMod('pre_raz')})`),
-    pad('Resistência Mental', `2d10+${skillMod('raz_ins')} (${skillMod('raz_ins')})`),
-    pad('Concentração',       `2d10+${skillMod('pre_raz')} (${skillMod('pre_raz')})`),
-    pad('Agilidade',          `2d10+${skillMod('pre_ins')} (${skillMod('pre_ins')})`),
-    pad('Investigação',       `2d10+${skillMod('raz_ins')} (${skillMod('raz_ins')})`),
-    pad('Negociação',         `2d10+${skillMod('raz_prs')} (${skillMod('raz_prs')})`),
   );
 
   // Arsenal
@@ -453,7 +405,6 @@ export function exportAgentTxt(id) {
 
   L(line('═'));
   L(`  Exportado em: ${new Date().toLocaleString('pt-BR')}`);
-  L('  Limiar da Corrupção — limiar-da-corrupcao.github.io');
   L(line('═'));
 
   const content  = lines.join('\n');
