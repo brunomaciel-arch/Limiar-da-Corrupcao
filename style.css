@@ -1953,3 +1953,94 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   .status-quick-btns { gap: 4px; }
   .sqb-input { width: 56px; }
 }
+
+/* ══════════════════════════════════════════════════════
+   ZONA CRÍTICA DA VIDA — v3
+   ══════════════════════════════════════════════════════ */
+
+/* Container da barra de vida: flex com zona crítica + zona normal */
+.status-bar--vida {
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: transparent;
+  gap: 2px;
+}
+
+/* Zona crítica: porção fixa da barra proporcional a 10/(max+10)
+   A largura real é calculada via JS com CSS custom property */
+.vida-critical-zone {
+  position: relative;
+  flex-shrink: 0;
+  height: 100%;
+  border-radius: 5px 0 0 5px;
+  overflow: hidden;
+  background: #0a0a0a;
+  border: 1px solid rgba(255, 23, 68, 0.4);
+  /* largura setada pelo JS via style="width:Xpx" */
+  min-width: 40px;
+  /* listras diagonais vermelhas indicando perigo */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    rgba(255, 23, 68, 0.18) 4px,
+    rgba(255, 23, 68, 0.18) 8px
+  );
+}
+
+/* Fill vermelho dentro da zona crítica (cresce da direita p/ esquerda
+   quando vida < 0, ou seja: quanto mais negativo, mais preenchido) */
+.vida-critical-fill {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background: var(--red);
+  box-shadow: 0 0 8px var(--red-glow);
+  border-radius: 0 3px 3px 0;
+  transition: width 0.3s ease;
+  width: 0%;
+  /* mantém as listras visíveis sobre o fill */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    rgba(0,0,0,0.25) 4px,
+    rgba(0,0,0,0.25) 8px
+  );
+  background-color: var(--red);
+}
+
+/* Label "ZONA CRÍTICA" centralizado */
+.vida-critical-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.06em;
+  color: rgba(255, 80, 80, 0.85);
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 1;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+
+/* Zona normal: flex-grow ocupa o resto */
+.vida-normal-zone {
+  flex: 1;
+  height: 100%;
+  background: rgba(255,255,255,0.05);
+  border-radius: 0 5px 5px 0;
+  overflow: hidden;
+}
+
+.vida-normal-zone .status-bar__fill--green {
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+}
