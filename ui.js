@@ -48,7 +48,7 @@ export function renderRoster() {
 
 function buildAgentCard(agent) {
   const bmMax   = calcBmMax(agent);
-  const vidaPct = agent.vidaMax > 0 ? Math.min(100, (agent.vidaCur / agent.vidaMax) * 100) : 0;
+  const vidaPct = agent.vidaMax > 0 && agent.vidaCur > 0 ? Math.min(100, (agent.vidaCur / agent.vidaMax) * 100) : 0;
   const bmPct   = bmMax > 0        ? Math.min(100, (agent.bmCur  / bmMax)           * 100) : 0;
   const card    = document.createElement('div');
   card.className = 'agent-card';
@@ -139,7 +139,7 @@ function populateTab0(agent) {
     wrapper.classList.remove('has-photo');
   }
 
-  ['name','title','focus','age','birthdate','history'].forEach(f => {
+  ['name','title','forma','age','birthdate','history'].forEach(f => {
     const el = $(`[data-field="${f}"]`);
     if (el) el.value = agent[f] ?? '';
   });
@@ -148,7 +148,8 @@ function populateTab0(agent) {
 
 export function updateSummary(agent) {
   const bmMax   = calcBmMax(agent);
-  const vidaPct = agent.vidaMax > 0 ? Math.min(100,(agent.vidaCur/agent.vidaMax)*100) : 0;
+  const vidaPct = agent.vidaMax > 0 && agent.vidaCur > 0
+    ? Math.min(100,(agent.vidaCur/agent.vidaMax)*100) : 0;
   const bmPct   = bmMax > 0        ? Math.min(100,(agent.bmCur/bmMax)*100)            : 0;
 
   $('#summary-vida-fill').style.width = `${vidaPct}%`;
@@ -207,8 +208,39 @@ function populateTab1(agent) {
 }
 
 function updateVidaBar(agent) {
-  const pct = agent.vidaMax > 0 ? Math.min(100,(agent.vidaCur/agent.vidaMax)*100) : 0;
-  $('#bar-vida').style.width = `${pct}%`;
+  const max    = agent.vidaMax || 0;
+  const cur    = agent.vidaCur;
+  // Total span of the bar = max + 10 (normal zone + critical zone)
+  const total  = max + 10;
+
+  // ── Critical zone: occupies 10/(max+10) of the bar width ──
+  const critZone  = document.getElementById('vida-critical-zone');
+  const critFill  = document.getElementById('vida-critical-fill');
+  const normalZone = document.getElementById('vida-normal-zone');
+
+  if (critZone && normalZone) {
+    const critPct   = total > 0 ? (10 / total) * 100 : 10;
+    const normalPct = total > 0 ? (max / total) * 100 : 90;
+    critZone.style.width   = `${critPct}%`;
+    normalZone.style.width = `${normalPct}%`;
+  }
+
+  // ── Critical fill: how deep into -10..0 we are (right-to-left) ──
+  if (critFill) {
+    if (cur < 0) {
+      const critDepth = Math.min(Math.abs(cur), 10); // 0..10
+      critFill.style.width = `${(critDepth / 10) * 100}%`;
+    } else {
+      critFill.style.width = '0%';
+    }
+  }
+
+  // ── Normal fill: 0..max (only shows when cur >= 0) ──
+  const normalFill = document.getElementById('bar-vida');
+  if (normalFill) {
+    const normalPct = max > 0 && cur > 0 ? Math.min(100, (cur / max) * 100) : 0;
+    normalFill.style.width = `${normalPct}%`;
+  }
 }
 
 function updateBmBar(agent) {
@@ -557,11 +589,11 @@ export function bindSheetEvents() {
         let cur = agent.vidaCur, max = agent.vidaMax;
         if (action==='max')   cur = max;
         if (action==='inc')   cur = Math.min(max, cur+1);
-        if (action==='dec')   cur = Math.max(0,   cur-1);
+        if (action==='dec')   cur = Math.max(-10,  cur-1);
         if (action==='delta') {
           const raw = $('#vida-delta-input').value.trim();
           const n   = parseInt(raw, 10);
-          if (!isNaN(n)) cur = Math.max(0, Math.min(max, cur+n));
+          if (!isNaN(n)) cur = Math.max(-10, Math.min(max, cur+n));
           $('#vida-delta-input').value = '';
         }
         setVidaCur(cur);
