@@ -4,7 +4,7 @@
 
 const STORAGE_KEY = 'limiar_agents';
 
-function createDefaultAgent(name = 'Novo Agente', title = '') {
+function createDefaultAgent(name = 'Novo Personagem', title = '') {
   return {
     id:        generateId(),
     createdAt: Date.now(),
@@ -295,6 +295,177 @@ export function exportAgent(id) {
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
+export function exportAgentTxt(id) {
+  const agent = id ? getAgent(id) : _active;
+  if (!agent) return;
+
+  const line  = (char, len = 54) => char.repeat(len);
+  const pad   = (label, value, total = 52) => {
+    const dots = total - label.length - String(value).length;
+    return `  ${label} ${'.'.repeat(Math.max(1, dots))} ${value}`;
+  };
+  const bar   = (cur, max, len = 20) => {
+    if (max <= 0) return '[' + '░'.repeat(len) + ']';
+    const filled = Math.round(Math.max(0, Math.min(cur, max)) / max * len);
+    return '[' + '█'.repeat(filled) + '░'.repeat(len - filled) + `] ${cur}/${max}`;
+  };
+
+  const bmMax        = (agent.attrs.raz + agent.attrs.ins) * 5;
+  const fonteTypes   = { poder: 'Poder', corrupcao: 'Corrupção', adrenalina: 'Adrenalina' };
+  const abilityTypes = { ordem: 'Ordem', ruina: 'Ruína', adrenalina: 'Adrenalina' };
+
+  const skillMod = (formula) => {
+    const a = agent.attrs;
+    const map = {
+      fis: a.fis, ins: a.ins, raz: a.raz, pre: a.pre, prs: a.prs,
+      pre_fis: Math.floor((a.pre + a.fis) / 2),
+      pre_raz: Math.floor((a.pre + a.raz) / 2),
+      raz_ins: Math.floor((a.raz + a.ins) / 2),
+      pre_ins: Math.floor((a.pre + a.ins) / 2),
+      raz_prs: Math.floor((a.raz + a.prs) / 2),
+    };
+    return map[formula] ?? 0;
+  };
+
+  const lines = [];
+  const L = (...args) => lines.push(...args);
+
+  L(
+    line('═'),
+    '  LIMIAR DA CORRUPÇÃO',
+    '  FICHA DE PERSONAGEM',
+    line('═'),
+    '',
+    `  NOME ......... ${agent.name || '—'}`,
+    `  TÍTULO ....... ${agent.title || '—'}`,
+    `  FORMA ........ ${agent.forma || '—'}`,
+    `  IDADE ........ ${agent.age || '—'}`,
+    `  NASCIMENTO ... ${agent.birthdate || '—'}`,
+    '',
+    line('─'),
+    '  STATUS VITAIS',
+    line('─'),
+    `  Vida         ${bar(agent.vidaCur, agent.vidaMax)}`,
+    `  Barreira Mg  ${bar(agent.bmCur, bmMax)}`,
+    `  Fonte        ${bar(agent.fonteCur, 10)}  (${fonteTypes[agent.fonteType] || agent.fonteType})`,
+    '',
+    line('─'),
+    '  ATRIBUTOS',
+    line('─'),
+    pad('RAZ  Razão',    agent.attrs.raz),
+    pad('INS  Instinto', agent.attrs.ins),
+    pad('PRE  Precisão', agent.attrs.pre),
+    pad('PRS  Presença', agent.attrs.prs),
+    pad('FIS  Físico',   agent.attrs.fis),
+    '',
+    line('─'),
+    '  DESENVOLVIMENTO',
+    line('─'),
+    pad('Aprendizado',     `${agent.devAprendizado  ?? 0} / 5`),
+    pad('Desenvolvimento', `${agent.devDesenvolvimento ?? 0} / 30`),
+    pad('Potencial Latente', `${agent.devPotencial ?? 0} / 10`),
+    '',
+    line('─'),
+    '  PERÍCIAS',
+    line('─'),
+    '  — Físico —',
+    pad('Atletismo',          `2d10+${skillMod('fis')} (${skillMod('fis')})`),
+    pad('Força',              `2d10+${skillMod('fis')} (${skillMod('fis')})`),
+    pad('Resistência Física', `2d10+${skillMod('fis')} (${skillMod('fis')})`),
+    '',
+    '  — Instinto —',
+    pad('Sobrevivência', `2d10+${skillMod('ins')} (${skillMod('ins')})`),
+    pad('Intuição',      `2d10+${skillMod('ins')} (${skillMod('ins')})`),
+    pad('Percepção',     `2d10+${skillMod('ins')} (${skillMod('ins')})`),
+    '',
+    '  — Razão —',
+    pad('Tecnologia',  `2d10+${skillMod('raz')} (${skillMod('raz')})`),
+    pad('Raciocínio',  `2d10+${skillMod('raz')} (${skillMod('raz')})`),
+    '',
+    '  — Precisão —',
+    pad('Prestidigitação', `2d10+${skillMod('pre')} (${skillMod('pre')})`),
+    '',
+    '  — Presença —',
+    pad('Furtividade', `2d10+${skillMod('prs')} (${skillMod('prs')})`),
+    pad('Engano',      `2d10+${skillMod('prs')} (${skillMod('prs')})`),
+    pad('Presença',    `2d10+${skillMod('prs')} (${skillMod('prs')})`),
+    '',
+    '  — Híbridos —',
+    pad('Redirecionamento',   `2d10+${skillMod('pre_fis')} (${skillMod('pre_fis')})`),
+    pad('Medicina',           `2d10+${skillMod('pre_raz')} (${skillMod('pre_raz')})`),
+    pad('Confecção e Reparo', `2d10+${skillMod('pre_raz')} (${skillMod('pre_raz')})`),
+    pad('Resistência Mental', `2d10+${skillMod('raz_ins')} (${skillMod('raz_ins')})`),
+    pad('Concentração',       `2d10+${skillMod('pre_raz')} (${skillMod('pre_raz')})`),
+    pad('Agilidade',          `2d10+${skillMod('pre_ins')} (${skillMod('pre_ins')})`),
+    pad('Investigação',       `2d10+${skillMod('raz_ins')} (${skillMod('raz_ins')})`),
+    pad('Negociação',         `2d10+${skillMod('raz_prs')} (${skillMod('raz_prs')})`),
+  );
+
+  // Arsenal
+  L('', line('─'), '  ARSENAL', line('─'));
+  L(pad('RD (Traje)',          agent.rd ?? 0));
+  L(pad('Créditos Universais', agent.credits ?? 0));
+  if (agent.equipment?.length) {
+    L('', '  Equipamentos:', '');
+    const colW = [22, 14, 8, 10, 8, 8, 4];
+    const hdr  = ['Nome','Descrição','Mercado','Dano','Alcance','Preço','Qtd'];
+    L('  ' + hdr.map((h,i) => h.padEnd(colW[i])).join(' '));
+    L('  ' + colW.map(w => '─'.repeat(w)).join(' '));
+    agent.equipment.forEach(e => {
+      const row = [e.name,e.description,e.market,e.damage,e.range,e.price,e.qty];
+      L('  ' + row.map((v,i) => String(v??'').slice(0,colW[i]).padEnd(colW[i])).join(' '));
+    });
+  }
+
+  // Habilidades
+  if (agent.abilities?.length) {
+    L('', line('─'), '  HABILIDADES', line('─'));
+    agent.abilities.forEach(a => {
+      L(`  ► ${a.name || 'Sem nome'}  [${abilityTypes[a.type] || a.type}]`);
+      if (a.description) {
+        a.description.split('\n').forEach(ln => L(`    ${ln}`));
+      }
+      if (a.refinement) {
+        L(`    Refinamento: ${a.refinement}`);
+      }
+      L('');
+    });
+  }
+
+  // Anotações
+  if (agent.notes?.length) {
+    L(line('─'), '  ANOTAÇÕES', line('─'));
+    agent.notes.forEach(n => {
+      if (n.title) L(`  [ ${n.title} ]`);
+      if (n.content) {
+        n.content.split('\n').forEach(ln => L(`  ${ln}`));
+      }
+      L('');
+    });
+  }
+
+  // História
+  if (agent.history) {
+    L(line('─'), '  HISTÓRIA', line('─'));
+    agent.history.split('\n').forEach(ln => L(`  ${ln}`));
+    L('');
+  }
+
+  L(line('═'));
+  L(`  Exportado em: ${new Date().toLocaleString('pt-BR')}`);
+  L('  Limiar da Corrupção — limiar-da-corrupcao.github.io');
+  L(line('═'));
+
+  const content  = lines.join('\n');
+  const blob     = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url      = URL.createObjectURL(blob);
+  const a        = document.createElement('a');
+  a.href         = url;
+  a.download     = `${sanitize(agent.name)}_limiar.txt`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
 export function importAgent(rawData, options = {}) {
   if (!rawData || typeof rawData !== 'object') return { success: false, agent: null, conflict: false };
   const agent   = mergeWithDefaults(rawData);
@@ -325,5 +496,5 @@ export async function importAgentFromFile(file, options = {}) {
 }
 
 function sanitize(name) {
-  return (name || 'agente').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]/g,'_').toLowerCase().slice(0,60);
+  return (name || 'personagem').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]/g,'_').toLowerCase().slice(0,60);
 }
