@@ -99,7 +99,7 @@ body {
 .view.active { display: block; }
 
 /* ════════════════════════════════════
-   ROSTER — Central de Agentes
+   ROSTER — Central de Personagens
 ════════════════════════════════════ */
 .roster-header {
   display: flex;
@@ -277,7 +277,7 @@ body {
 .agent-card__delete:hover { background: var(--red-glow); }
 
 /* ════════════════════════════════════
-   SHEET — Ficha do Agente
+   SHEET — Ficha do Personagem
 ════════════════════════════════════ */
 #view-sheet { flex-direction: column; }
 #view-sheet.active { display: flex; }
@@ -361,7 +361,7 @@ body {
 .tab-panel.active { display: block; }
 
 /* ════════════════════════════════════
-   ABA 0 — ID DO AGENTE
+   ABA 0 — ID DO PERSONAGEM
 ════════════════════════════════════ */
 /* id-layout, id-left, id-right, photo-wrapper — see v2 block below */
 
@@ -2043,4 +2043,70 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .vida-normal-zone .status-bar__fill--green {
   height: 100%;
   border-radius: 0 4px 4px 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   MODAL DE EXPORTAÇÃO — v3
+   ══════════════════════════════════════════════════════ */
+
+.modal--export { max-width: 460px; }
+
+.export-modal__subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.export-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.export-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), box-shadow var(--transition), transform 0.08s;
+  text-align: center;
+}
+.export-option:hover {
+  border-color: var(--cyan);
+  background: var(--bg-hover);
+  box-shadow: 0 0 18px var(--cyan-glow);
+  transform: translateY(-2px);
+}
+.export-option:active { transform: scale(0.97); }
+
+.export-option__icon {
+  font-family: var(--font-mono);
+  font-size: 1.8rem;
+  color: var(--cyan);
+  line-height: 1;
+  display: block;
+}
+.export-option__fmt {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  letter-spacing: 0.06em;
+}
+.export-option__desc {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .export-options { grid-template-columns: 1fr; }
 }
