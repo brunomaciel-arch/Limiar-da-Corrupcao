@@ -12,7 +12,7 @@ function createDefaultAgent(name = 'Novo Agente', title = '') {
 
     // Aba 0 — Identidade
     name, title,
-    focus: '', age: '', birthdate: '', history: '',
+    forma: '', age: '', birthdate: '', history: '',
     photo: '',
     photoOffsetX: 50,   // % object-position horizontal
     photoOffsetY: 50,   // % object-position vertical
@@ -84,6 +84,8 @@ function mergeWithDefaults(agent) {
   if (merged.devDesenvolvimento === undefined) merged.devDesenvolvimento = 0;
   if (merged.devPotencial       === undefined) merged.devPotencial       = 0;
   if (merged.rdTier             === undefined) merged.rdTier             = 'comum';
+  // migração: campo renomeado de 'focus' para 'forma'
+  if (!merged.forma && agent.focus) merged.forma = agent.focus;
   return merged;
 }
 
@@ -180,7 +182,7 @@ export function setBmCur(value) {
 
 export function setVidaCur(value) {
   if (!_active) return;
-  _active.vidaCur = Math.max(0, Math.min(_active.vidaMax || 9999, Number(value)));
+  _active.vidaCur = Math.max(-10, Math.min(_active.vidaMax || 9999, Number(value)));
   saveAgent(_active);
 }
 
