@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Limiar da Corrupção — Central de Agentes</title>
+  <title>Limiar da Corrupção — Central de Personagens</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
   <header class="roster-header">
     <div class="roster-header__brand">
       <span class="brand-glitch" data-text="LIMIAR">LIMIAR</span>
-      <span class="brand-sub">DA CORRUPÇÃO // CENTRAL DE AGENTES</span>
+      <span class="brand-sub">DA CORRUPÇÃO // CENTRAL DE PERSONAGENS</span>
     </div>
     <div class="roster-header__actions">
       <button id="btn-import" class="btn btn--ghost">
@@ -22,7 +22,7 @@
       </button>
       <button id="btn-new-agent" class="btn btn--primary">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Novo Agente
+        Novo sagem
       </button>
     </div>
     <input type="file" id="import-file-input" accept=".json" hidden />
@@ -30,8 +30,8 @@
   <main class="roster-grid" id="roster-grid">
     <div class="roster-empty" id="roster-empty">
       <div class="roster-empty__icon">◈</div>
-      <p>Nenhum agente registrado.</p>
-      <p class="dim">Crie um novo agente ou importe um arquivo .json.</p>
+      <p>Nenhum personagem registrado.</p>
+      <p class="dim">Crie um novo personagem ou importe um arquivo .json.</p>
     </div>
   </main>
 </div>
@@ -48,7 +48,7 @@
       <span id="sheet-agent-title" class="sheet-header__title">—</span>
     </div>
     <div class="sheet-header__actions">
-      <button id="btn-export" class="btn btn--ghost btn--sm">Exportar .json</button>
+      <button id="btn-export" class="btn btn--ghost btn--sm">Exportar</button>
       <button id="btn-delete-agent" class="btn btn--danger btn--sm">Deletar</button>
     </div>
   </header>
@@ -69,7 +69,7 @@
       <!-- Coluna esquerda: campos de texto -->
       <div class="id-left">
         <div class="field-group">
-          <label class="field-label" for="agent-name">Nome do Agente</label>
+          <label class="field-label" for="agent-name">Nome do Personagem</label>
           <input class="field-input" type="text" id="agent-name" data-field="name" placeholder="Nome completo..." />
         </div>
         <div class="field-group">
@@ -92,14 +92,14 @@
         </div>
         <div class="field-group">
           <label class="field-label" for="agent-history">História do Personagem</label>
-          <textarea class="field-textarea" id="agent-history" data-field="history" rows="10" placeholder="Escreva a história do agente..."></textarea>
+          <textarea class="field-textarea" id="agent-history" data-field="history" rows="10" placeholder="Escreva a história do personagem..."></textarea>
         </div>
       </div><!-- /.id-left -->
 
       <!-- Coluna direita: foto em cima, resumo embaixo -->
       <div class="id-right">
         <div class="photo-wrapper" id="photo-wrapper" title="Clique para trocar foto">
-          <img id="agent-photo" src="" alt="Foto do Agente" draggable="false" />
+          <img id="agent-photo" src="" alt="Foto do Personagem" draggable="false" />
           <div class="photo-overlay">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             <span>Trocar foto</span>
@@ -496,21 +496,21 @@
 <!-- ══ MODAIS ══ -->
 <div class="modal-backdrop" id="modal-new-agent" hidden>
   <div class="modal">
-    <div class="modal__header"><h2 class="modal__title">Novo Agente</h2><button class="modal__close" id="modal-close-new">✕</button></div>
+    <div class="modal__header"><h2 class="modal__title">Novo Personagem</h2><button class="modal__close" id="modal-close-new">✕</button></div>
     <div class="modal__body">
-      <div class="field-group"><label class="field-label" for="new-agent-name">Nome *</label><input class="field-input" type="text" id="new-agent-name" placeholder="Nome do agente..." /></div>
+      <div class="field-group"><label class="field-label" for="new-agent-name">Nome *</label><input class="field-input" type="text" id="new-agent-name" placeholder="Nome do personagem..." /></div>
       <div class="field-group"><label class="field-label" for="new-agent-title">Título / Codinome</label><input class="field-input" type="text" id="new-agent-title" placeholder="Codinome..." /></div>
     </div>
     <div class="modal__footer">
       <button class="btn btn--ghost" id="modal-cancel-new">Cancelar</button>
-      <button class="btn btn--primary" id="modal-confirm-new">Criar Agente</button>
+      <button class="btn btn--primary" id="modal-confirm-new">Criar Personagem</button>
     </div>
   </div>
 </div>
 
 <div class="modal-backdrop" id="modal-confirm-delete" hidden>
   <div class="modal modal--danger">
-    <div class="modal__header"><h2 class="modal__title">Deletar Agente</h2><button class="modal__close" id="modal-close-delete">✕</button></div>
+    <div class="modal__header"><h2 class="modal__title">Deletar Personagem</h2><button class="modal__close" id="modal-close-delete">✕</button></div>
     <div class="modal__body"><p>Deletar <strong id="delete-agent-name-display"></strong>? Irreversível.</p></div>
     <div class="modal__footer">
       <button class="btn btn--ghost" id="modal-cancel-delete">Cancelar</button>
@@ -520,6 +520,34 @@
 </div>
 
 <div class="toast-container" id="toast-container"></div>
+
+<!-- ══ MODAL: EXPORTAR ══ -->
+<div class="modal-backdrop" id="modal-export" hidden>
+  <div class="modal modal--export">
+    <div class="modal__header">
+      <h2 class="modal__title">Exportar Ficha</h2>
+      <button class="modal__close" id="modal-close-export">✕</button>
+    </div>
+    <div class="modal__body">
+      <p class="export-modal__subtitle">Como deseja exportar?</p>
+      <div class="export-options">
+
+        <button class="export-option" id="export-btn-json">
+          <span class="export-option__icon">{}</span>
+          <span class="export-option__fmt">.json</span>
+          <span class="export-option__desc">Arquivo estruturado para reimportar no site. Preserva todos os dados.</span>
+        </button>
+
+        <button class="export-option" id="export-btn-txt">
+          <span class="export-option__icon">≡</span>
+          <span class="export-option__fmt">.txt</span>
+          <span class="export-option__desc">Ficha formatada para leitura. Ideal para Discord, WhatsApp ou impressão.</span>
+        </button>
+
+      </div>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="state.js"></script>
 <script type="module" src="dice.js"></script>
