@@ -8,7 +8,7 @@ import {
   setAttr, stepAttr, setBmCur, setVidaCur,
   setFonteCur, toggleActionSource,
   calcBmMax, calcSkillMod,
-  exportAgent, importAgentFromFile,
+  exportAgent, exportAgentTxt, importAgentFromFile,
   addEquipment, updateEquipmentField, removeEquipment,
   addAbility, updateAbilityField, removeAbility,
   addNote, updateNoteField, removeNote,
@@ -101,7 +101,7 @@ function buildAgentCard(agent) {
 ════════════════════════════════════ */
 export function openSheet(id) {
   const agent = openAgent(id);
-  if (!agent) { showToast('Agente não encontrado.', 'error'); return; }
+  if (!agent) { showToast('Personagem não encontrado.', 'error'); return; }
   $('#sheet-agent-name').textContent  = agent.name  || '—';
   $('#sheet-agent-title').textContent = agent.title || '—';
   populateTab0(agent);
@@ -506,16 +506,40 @@ export function showNewAgentModal()  { $('#new-agent-name').value=''; $('#new-ag
 export function hideNewAgentModal()  { $('#modal-new-agent').hidden=true; }
 
 let _pendingDeleteId = null;
-export function showDeleteModal(id, name) { _pendingDeleteId=id; $('#delete-agent-name-display').textContent=name||'agente'; $('#modal-confirm-delete').hidden=false; }
+export function showDeleteModal(id, name) { _pendingDeleteId=id; $('#delete-agent-name-display').textContent=name||'personagem'; $('#modal-confirm-delete').hidden=false; }
 export function hideDeleteModal()         { _pendingDeleteId=null; $('#modal-confirm-delete').hidden=true; }
 export function confirmDelete() {
   if (!_pendingDeleteId) return;
   const onSheet = getActiveAgent()?.id === _pendingDeleteId;
   deleteAgent(_pendingDeleteId);
   hideDeleteModal();
-  showToast('Agente deletado.','success');
+  showToast('Personagem deletado.','success');
   if (onSheet) closeSheet(); else renderRoster();
   _pendingDeleteId = null;
+}
+
+/* ── Modal: Exportar ── */
+export function showExportModal() {
+  $('#modal-export').hidden = false;
+}
+export function hideExportModal() {
+  $('#modal-export').hidden = true;
+}
+function bindExportModal() {
+  $('#modal-close-export').addEventListener('click', hideExportModal);
+  $('#modal-export').addEventListener('click', e => {
+    if (e.target === e.currentTarget) hideExportModal();
+  });
+  $('#export-btn-json').addEventListener('click', () => {
+    exportAgent();
+    hideExportModal();
+    showToast('Exportado como .json!', 'success');
+  });
+  $('#export-btn-txt').addEventListener('click', () => {
+    exportAgentTxt();
+    hideExportModal();
+    showToast('Exportado como .txt!', 'success');
+  });
 }
 
 /* ════════════════════════════════════
@@ -526,9 +550,12 @@ export function bindSheetEvents() {
   // Tabs
   $$('.tab').forEach(t => t.addEventListener('click', () => activateTab(Number(t.dataset.tab))));
 
+  // Exportar modal
+  bindExportModal();
+
   // Header
   $('#btn-back').addEventListener('click', closeSheet);
-  $('#btn-export').addEventListener('click', () => { exportAgent(); showToast('Ficha exportada!','success'); });
+  $('#btn-export').addEventListener('click', showExportModal);
   $('#btn-delete-agent').addEventListener('click', () => { const a=getActiveAgent(); if(a) showDeleteModal(a.id,a.name); });
 
   // ── Foto: clique para trocar ──
