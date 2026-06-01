@@ -16,6 +16,11 @@ function createDefaultAgent(name = 'Novo Personagem', title = '') {
     photo: '',
     photoOffsetX: 50,   // % object-position horizontal
     photoOffsetY: 50,   // % object-position vertical
+    photoScale:   1,    // zoom 1x–3x
+
+    // Discord webhooks (por personagem)
+    webhookRolagens: '',
+    webhookStatus:   '',
 
     // Aba 1 — Atributos (0–12)
     attrs: { raz: 0, ins: 0, pre: 0, prs: 0, fis: 0 },
@@ -86,6 +91,11 @@ function mergeWithDefaults(agent) {
   if (merged.rdTier             === undefined) merged.rdTier             = 'comum';
   // migração: campo renomeado de 'focus' para 'forma'
   if (!merged.forma && agent.focus) merged.forma = agent.focus;
+  // photo scale default
+  if (merged.photoScale === undefined) merged.photoScale = 1;
+  // webhook defaults
+  if (merged.webhookRolagens === undefined) merged.webhookRolagens = '';
+  if (merged.webhookStatus   === undefined) merged.webhookStatus   = '';
   return merged;
 }
 
@@ -198,10 +208,11 @@ export function setFonteCur(value) {
   saveAgent(_active);
 }
 
-export function setPhotoOffset(x, y) {
+export function setPhotoOffset(x, y, scale) {
   if (!_active) return;
   _active.photoOffsetX = Math.max(0, Math.min(100, x));
   _active.photoOffsetY = Math.max(0, Math.min(100, y));
+  if (scale !== undefined) _active.photoScale = Math.max(1, Math.min(3, scale));
   saveAgent(_active);
 }
 
