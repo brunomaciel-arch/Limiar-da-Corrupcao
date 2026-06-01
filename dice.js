@@ -5,6 +5,7 @@
 
 import { getActiveAgent, calcSkillMod, pushRollHistory } from './state.js';
 import { populateRollHistory } from './ui.js';
+import { sendRoll } from './webhook.js';
 
 const elSkill = document.getElementById('roll-result-skill');
 const elD1    = document.getElementById('roll-d1');
@@ -48,6 +49,9 @@ export function rollSkill(skillName, formula) {
       const entry = { skill: skillName, d1, d2, mod, total, ts: Date.now() };
       pushRollHistory(entry);
       populateRollHistory(getActiveAgent());
+
+      // Send to Discord webhook (fire-and-forget)
+      sendRoll(skillName, d1, d2, mod, total);
 
       _rolling = false;
     }
