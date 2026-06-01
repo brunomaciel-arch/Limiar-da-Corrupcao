@@ -2,6 +2,7 @@
    LIMIAR DA CORRUPÇÃO — ui.js  (v2)
    ══════════════════════════════════════════════════════ */
 
+import { sendStatus, sendTest } from './webhook.js';
 import {
   loadAllAgents, createAgent, deleteAgent,
   openAgent, getActiveAgent, setField,
@@ -131,6 +132,8 @@ function populateTab0(agent) {
   if (agent.photo) {
     photo.src = agent.photo;
     photo.style.objectPosition = `${agent.photoOffsetX ?? 50}% ${agent.photoOffsetY ?? 50}%`;
+    photo.style.transform = `scale(${agent.photoScale ?? 1})`;
+    photo.style.transformOrigin = `${agent.photoOffsetX ?? 50}% ${agent.photoOffsetY ?? 50}%`;
     photo.style.display = 'block';
     wrapper.classList.add('has-photo');
   } else {
@@ -260,10 +263,13 @@ function renderFontePips(agent) {
     btn.dataset.index = i;
     btn.textContent   = i + 1;
     btn.addEventListener('click', () => {
+      const prevFonte = agent.fonteCur;
       const nv = i < agent.fonteCur ? i : i + 1;
       setFonteCur(nv);
-      renderFontePips(getActiveAgent());
-      updateSummary(getActiveAgent());
+      const updatedFonte = getActiveAgent();
+      renderFontePips(updatedFonte);
+      updateSummary(updatedFonte);
+      sendStatus('fonte', updatedFonte.fonteCur - prevFonte);
     });
     c.appendChild(btn);
   }
@@ -555,6 +561,8 @@ export function bindSheetEvents() {
 
   // Header
   $('#btn-back').addEventListener('click', closeSheet);
+  $('#btn-config').addEventListener('click', showConfigModal);
+  bindConfigModal();
   $('#btn-export').addEventListener('click', showExportModal);
   $('#btn-delete-agent').addEventListener('click', () => { const a=getActiveAgent(); if(a) showDeleteModal(a.id,a.name); });
 
@@ -623,10 +631,13 @@ export function bindSheetEvents() {
           if (!isNaN(n)) cur = Math.max(-10, Math.min(max, cur+n));
           $('#vida-delta-input').value = '';
         }
+        const prevVida = agent.vidaCur;
         setVidaCur(cur);
-        $('#vida-cur').value = getActiveAgent().vidaCur;
-        updateVidaBar(getActiveAgent());
-        updateSummary(getActiveAgent());
+        const updatedVida = getActiveAgent();
+        $('#vida-cur').value = updatedVida.vidaCur;
+        updateVidaBar(updatedVida);
+        updateSummary(updatedVida);
+        sendStatus('vida', updatedVida.vidaCur - prevVida);
       }
 
       if (target === 'bm') {
@@ -641,10 +652,13 @@ export function bindSheetEvents() {
           if (!isNaN(n)) cur = Math.max(0, Math.min(max, cur+n));
           $('#bm-delta-input').value = '';
         }
+        const prevBm = agent.bmCur;
         setBmCur(cur);
-        $('#bm-cur').value = getActiveAgent().bmCur;
-        updateBmBar(getActiveAgent());
-        updateSummary(getActiveAgent());
+        const updatedBm = getActiveAgent();
+        $('#bm-cur').value = updatedBm.bmCur;
+        updateBmBar(updatedBm);
+        updateSummary(updatedBm);
+        sendStatus('bm', updatedBm.bmCur - prevBm);
       }
     });
   });
@@ -789,6 +803,64 @@ export function bindRosterEvents() {
 /* ════════════════════════════════════
    FOTO: UPLOAD + DRAG TO REPOSITION
 ════════════════════════════════════ */
+/* ════════════════════════════════════
+   MODAL DE CONFIGURAÇÕES
+════════════════════════════════════ */
+export function showConfigModal() {
+  const agent = getActiveAgent();
+  if (!agent) return;
+  $('#config-webhook-rolagens').value = agent.webhookRolagens || '';
+  $('#config-webhook-status').value   = agent.webhookStatus   || '';
+  $('#config-feedback-rolagens').textContent = '';
+  $('#config-feedback-status').textContent   = '';
+  $('#config-feedback-rolagens').className   = 'config-feedback';
+  $('#config-feedback-status').className     = 'config-feedback';
+  $('#modal-config').hidden = false;
+}
+
+export function hideConfigModal() {
+  $('#modal-config').hidden = true;
+}
+
+function bindConfigModal() {
+  $('#modal-close-config').addEventListener('click', hideConfigModal);
+  $('#modal-cancel-config').addEventListener('click', hideConfigModal);
+  $('#modal-config').addEventListener('click', e => {
+    if (e.target === e.currentTarget) hideConfigModal();
+  });
+
+  $('#modal-save-config').addEventListener('click', () => {
+    const rolagens = $('#config-webhook-rolagens').value.trim();
+    const status   = $('#config-webhook-status').value.trim();
+    setField('webhookRolagens', rolagens);
+    setField('webhookStatus',   status);
+    hideConfigModal();
+    showToast('Configurações salvas!', 'success');
+  });
+
+  // Testar rolagens
+  $('#config-test-rolagens').addEventListener('click', async () => {
+    const url = $('#config-webhook-rolagens').value.trim();
+    const fb  = $('#config-feedback-rolagens');
+    if (!url) { fb.textContent = 'Cole uma URL antes de testar.'; fb.className = 'config-feedback error'; return; }
+    fb.textContent = 'Enviando...'; fb.className = 'config-feedback loading';
+    const ok = await sendTest(url, 'rolagens');
+    fb.textContent = ok ? '✓ Mensagem enviada com sucesso!' : '✗ Falha — verifique a URL.';
+    fb.className   = `config-feedback ${ok ? 'ok' : 'error'}`;
+  });
+
+  // Testar status
+  $('#config-test-status').addEventListener('click', async () => {
+    const url = $('#config-webhook-status').value.trim();
+    const fb  = $('#config-feedback-status');
+    if (!url) { fb.textContent = 'Cole uma URL antes de testar.'; fb.className = 'config-feedback error'; return; }
+    fb.textContent = 'Enviando...'; fb.className = 'config-feedback loading';
+    const ok = await sendTest(url, 'status');
+    fb.textContent = ok ? '✓ Mensagem enviada com sucesso!' : '✗ Falha — verifique a URL.';
+    fb.className   = `config-feedback ${ok ? 'ok' : 'error'}`;
+  });
+}
+
 function handlePhotoUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -796,7 +868,7 @@ function handlePhotoUpload(e) {
   reader.onload = ev => {
     const b64   = ev.target.result;
     setField('photo', b64);
-    setPhotoOffset(50, 50); // reset position on new upload
+    setPhotoOffset(50, 50, 1); // reset position and scale on new upload
     const photo   = $('#agent-photo');
     const wrapper = $('#photo-wrapper');
     photo.src                  = b64;
@@ -815,11 +887,61 @@ function bindPhotoDrag() {
   let dragging  = false;
   let startX, startY, startOX, startOY;
 
+  // ── Inject zoom slider into wrapper (once) ──
+  if (!wrapper.querySelector('.photo-zoom-slider')) {
+    const zoomEl = document.createElement('div');
+    zoomEl.className = 'photo-zoom-slider';
+    zoomEl.innerHTML = `
+      <span class="photo-zoom-label" id="photo-zoom-label">zoom 1.0×</span>
+      <input class="photo-zoom-input" id="photo-zoom-input"
+             type="range" min="1" max="3" step="0.05" value="1" />`;
+    wrapper.appendChild(zoomEl);
+  }
+
+  function applyZoom(scale) {
+    const agent = getActiveAgent();
+    const ox    = agent?.photoOffsetX ?? 50;
+    const oy    = agent?.photoOffsetY ?? 50;
+    photo.style.transform       = `scale(${scale})`;
+    photo.style.transformOrigin = `${ox}% ${oy}%`;
+    const label = $('#photo-zoom-label');
+    const input = $('#photo-zoom-input');
+    if (label) label.textContent = `zoom ${scale.toFixed(1)}×`;
+    if (input) input.value = scale;
+  }
+
+  function savePosition() {
+    const pos   = photo.style.objectPosition.match(/([\d.]+)%\s+([\d.]+)%/);
+    const scale = parseFloat(photo.style.transform?.match(/scale\(([\d.]+)\)/)?.[1] ?? 1);
+    if (pos) setPhotoOffset(parseFloat(pos[1]), parseFloat(pos[2]), scale);
+  }
+
+  // ── Zoom slider input ──
+  wrapper.addEventListener('input', e => {
+    if (e.target.id !== 'photo-zoom-input') return;
+    const scale = parseFloat(e.target.value);
+    applyZoom(scale);
+    savePosition();
+  });
+
+  // ── Scroll wheel zoom ──
+  wrapper.addEventListener('wheel', e => {
+    const agent = getActiveAgent();
+    if (!agent?.photo) return;
+    e.preventDefault();
+    const current = parseFloat(photo.style.transform?.match(/scale\(([\d.]+)\)/)?.[1] ?? 1);
+    const delta   = e.deltaY < 0 ? 0.1 : -0.1;
+    const next    = Math.max(1, Math.min(3, current + delta));
+    applyZoom(next);
+    savePosition();
+  }, { passive: false });
+
+  // ── Drag to reposition ──
   wrapper.addEventListener('mousedown', e => {
     const agent = getActiveAgent();
     if (!agent?.photo) return;
-    // Only drag with left button
     if (e.button !== 0) return;
+    if (e.target.classList.contains('photo-zoom-input')) return;
     dragging = true;
     startX   = e.clientX;
     startY   = e.clientY;
@@ -831,31 +953,32 @@ function bindPhotoDrag() {
 
   document.addEventListener('mousemove', e => {
     if (!dragging) return;
-    const dx  = e.clientX - startX;
-    const dy  = e.clientY - startY;
-    const W   = wrapper.offsetWidth;
-    const H   = wrapper.offsetHeight;
+    const dx   = e.clientX - startX;
+    const dy   = e.clientY - startY;
+    const W    = wrapper.offsetWidth;
+    const H    = wrapper.offsetHeight;
     const newX = Math.max(0, Math.min(100, startOX - (dx / W) * 100));
     const newY = Math.max(0, Math.min(100, startOY - (dy / H) * 100));
     photo.style.objectPosition = `${newX}% ${newY}%`;
+    // Keep transformOrigin in sync while dragging
+    photo.style.transformOrigin = `${newX}% ${newY}%`;
   });
 
-  document.addEventListener('mouseup', e => {
+  document.addEventListener('mouseup', () => {
     if (!dragging) return;
     dragging = false;
     photo.classList.remove('dragging');
-    // Persist final position
-    const pos = photo.style.objectPosition.match(/([\d.]+)%\s+([\d.]+)%/);
-    if (pos) setPhotoOffset(parseFloat(pos[1]), parseFloat(pos[2]));
+    savePosition();
   });
 
-  // Touch support
+  // ── Touch drag ──
   wrapper.addEventListener('touchstart', e => {
     const agent = getActiveAgent();
     if (!agent?.photo) return;
+    if (e.touches.length !== 1) return;
     const t  = e.touches[0];
     dragging = true;
-    startX   = t.clientX; startY  = t.clientY;
+    startX   = t.clientX; startY = t.clientY;
     startOX  = agent.photoOffsetX ?? 50;
     startOY  = agent.photoOffsetY ?? 50;
     e.preventDefault();
@@ -863,23 +986,27 @@ function bindPhotoDrag() {
 
   document.addEventListener('touchmove', e => {
     if (!dragging) return;
-    const t  = e.touches[0];
-    const dx = t.clientX - startX;
-    const dy = t.clientY - startY;
-    const W  = wrapper.offsetWidth;
-    const H  = wrapper.offsetHeight;
+    const t    = e.touches[0];
+    const dx   = t.clientX - startX;
+    const dy   = t.clientY - startY;
+    const W    = wrapper.offsetWidth;
+    const H    = wrapper.offsetHeight;
     const newX = Math.max(0, Math.min(100, startOX - (dx / W) * 100));
     const newY = Math.max(0, Math.min(100, startOY - (dy / H) * 100));
-    photo.style.objectPosition = `${newX}% ${newY}%`;
+    photo.style.objectPosition  = `${newX}% ${newY}%`;
+    photo.style.transformOrigin = `${newX}% ${newY}%`;
     e.preventDefault();
   }, { passive: false });
 
   document.addEventListener('touchend', () => {
     if (!dragging) return;
     dragging = false;
-    const pos = photo.style.objectPosition.match(/([\d.]+)%\s+([\d.]+)%/);
-    if (pos) setPhotoOffset(parseFloat(pos[1]), parseFloat(pos[2]));
+    savePosition();
   });
+
+  // ── Init zoom from saved state ──
+  const agent = getActiveAgent();
+  if (agent?.photo) applyZoom(agent.photoScale ?? 1);
 }
 
 /* ── helper ── */
