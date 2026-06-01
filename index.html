@@ -48,6 +48,7 @@
       <span id="sheet-agent-title" class="sheet-header__title">—</span>
     </div>
     <div class="sheet-header__actions">
+      <button id="btn-config" class="btn btn--ghost btn--sm">⚙ Configurações</button>
       <button id="btn-export" class="btn btn--ghost btn--sm">Exportar</button>
       <button id="btn-delete-agent" class="btn btn--danger btn--sm">Deletar</button>
     </div>
@@ -550,8 +551,48 @@
 </div>
 
 <script type="module" src="state.js"></script>
+<script type="module" src="webhook.js"></script>
 <script type="module" src="dice.js"></script>
 <script type="module" src="ui.js"></script>
 <script type="module" src="app.js"></script>
+
+<!-- ══ MODAL: CONFIGURAÇÕES ══ -->
+<div class="modal-backdrop" id="modal-config" hidden>
+  <div class="modal modal--config">
+    <div class="modal__header">
+      <h2 class="modal__title">⚙ Configurações do Personagem</h2>
+      <button class="modal__close" id="modal-close-config">✕</button>
+    </div>
+    <div class="modal__body">
+
+      <div class="config-section">
+        <p class="config-section__title">Discord — Webhook de Rolagens</p>
+        <p class="config-section__desc">As rolagens de perícias aparecerão neste canal.</p>
+        <div class="config-webhook-row">
+          <input class="field-input" type="url" id="config-webhook-rolagens"
+                 placeholder="https://discord.com/api/webhooks/..." />
+          <button class="btn btn--ghost btn--sm" id="config-test-rolagens">Testar</button>
+        </div>
+        <p class="config-feedback" id="config-feedback-rolagens"></p>
+      </div>
+
+      <div class="config-section">
+        <p class="config-section__title">Discord — Webhook de Status</p>
+        <p class="config-section__desc">Alterações de Vida, BM e Fonte aparecerão neste canal.</p>
+        <div class="config-webhook-row">
+          <input class="field-input" type="url" id="config-webhook-status"
+                 placeholder="https://discord.com/api/webhooks/..." />
+          <button class="btn btn--ghost btn--sm" id="config-test-status">Testar</button>
+        </div>
+        <p class="config-feedback" id="config-feedback-status"></p>
+      </div>
+
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" id="modal-cancel-config">Cancelar</button>
+      <button class="btn btn--primary" id="modal-save-config">Salvar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
