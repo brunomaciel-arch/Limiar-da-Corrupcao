@@ -99,7 +99,7 @@ body {
 .view.active { display: block; }
 
 /* ════════════════════════════════════
-   ROSTER — Central de Personagens
+   ROSTER — Central de Agentes
 ════════════════════════════════════ */
 .roster-header {
   display: flex;
@@ -277,7 +277,7 @@ body {
 .agent-card__delete:hover { background: var(--red-glow); }
 
 /* ════════════════════════════════════
-   SHEET — Ficha do Personagem
+   SHEET — Ficha do Agente
 ════════════════════════════════════ */
 #view-sheet { flex-direction: column; }
 #view-sheet.active { display: flex; }
@@ -361,7 +361,7 @@ body {
 .tab-panel.active { display: block; }
 
 /* ════════════════════════════════════
-   ABA 0 — ID DO PERSONAGEM
+   ABA 0 — ID DO AGENTE
 ════════════════════════════════════ */
 /* id-layout, id-left, id-right, photo-wrapper — see v2 block below */
 
@@ -2109,4 +2109,118 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
 @media (max-width: 480px) {
   .export-options { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════════════════
+   MODAL DE CONFIGURAÇÕES — v4
+   ══════════════════════════════════════════════════════ */
+
+.modal--config { max-width: 500px; }
+
+.config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.config-section + .config-section { margin-top: 14px; }
+
+.config-section__title {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+.config-section__desc {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.config-webhook-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.config-webhook-row .field-input {
+  flex: 1;
+  font-size: 0.78rem;
+  padding: 8px 10px;
+}
+
+.config-feedback {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  min-height: 16px;
+  letter-spacing: 0.04em;
+  transition: color var(--transition);
+}
+.config-feedback.ok    { color: var(--green); }
+.config-feedback.error { color: var(--red); }
+.config-feedback.loading { color: var(--text-dim); }
+
+/* ══════════════════════════════════════════════════════
+   FOTO — ZOOM (scroll wheel + slider overlay)
+   ══════════════════════════════════════════════════════ */
+
+/* Zoom slider aparece no hover da foto */
+.photo-zoom-slider {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  opacity: 0;
+  transition: opacity var(--transition);
+  pointer-events: none;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.photo-wrapper.has-photo:hover .photo-zoom-slider {
+  opacity: 1;
+  pointer-events: auto;
+}
+.photo-zoom-label {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--cyan);
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 6px rgba(0,0,0,0.9);
+  background: rgba(5,10,20,0.7);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.photo-zoom-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.photo-zoom-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan-glow2);
+  cursor: pointer;
+}
+.photo-zoom-input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--cyan);
+  border: none;
+  cursor: pointer;
 }
