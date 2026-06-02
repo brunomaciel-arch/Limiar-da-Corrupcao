@@ -616,15 +616,13 @@ export function bindSheetEvents() {
   $$('.sqb[data-target]').forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.dataset.target; // 'vida' | 'bm'
-      const action = btn.dataset.action; // 'max' | 'inc' | 'dec' | 'delta'
+      const action = btn.dataset.action; // 'max' | 'delta'
       const agent  = getActiveAgent();
       if (!agent) return;
 
       if (target === 'vida') {
         let cur = agent.vidaCur, max = agent.vidaMax;
         if (action==='max')   cur = max;
-        if (action==='inc')   cur = Math.min(max, cur+1);
-        if (action==='dec')   cur = Math.max(-10,  cur-1);
         if (action==='delta') {
           const raw = $('#vida-delta-input').value.trim();
           const n   = parseInt(raw, 10);
@@ -644,8 +642,6 @@ export function bindSheetEvents() {
         const max = calcBmMax(agent);
         let cur = agent.bmCur;
         if (action==='max')   cur = max;
-        if (action==='inc')   cur = Math.min(max, cur+1);
-        if (action==='dec')   cur = Math.max(0,   cur-1);
         if (action==='delta') {
           const raw = $('#bm-delta-input').value.trim();
           const n   = parseInt(raw, 10);
