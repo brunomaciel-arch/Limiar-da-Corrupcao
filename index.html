@@ -220,8 +220,6 @@
           </div>
           <div class="status-quick-btns" id="vida-quick-btns">
             <button class="sqb sqb--green" data-target="vida" data-action="max" title="Restaurar ao máximo">Máximo</button>
-            <button class="sqb sqb--green" data-target="vida" data-action="inc" title="+1">+1</button>
-            <button class="sqb sqb--red"   data-target="vida" data-action="dec" title="-1">−1</button>
             <div class="sqb-value-group">
               <input type="text" class="sqb-input" id="vida-delta-input" placeholder="±valor" />
               <button class="sqb sqb--ghost" data-target="vida" data-action="delta" title="Aplicar valor">OK</button>
@@ -242,8 +240,6 @@
           <div class="status-bar"><div class="status-bar__fill status-bar__fill--cyan" id="bar-bm"></div></div>
           <div class="status-quick-btns">
             <button class="sqb sqb--cyan" data-target="bm" data-action="max" title="Restaurar ao máximo">Máximo</button>
-            <button class="sqb sqb--cyan" data-target="bm" data-action="inc" title="+1">+1</button>
-            <button class="sqb sqb--red"  data-target="bm" data-action="dec" title="-1">−1</button>
             <div class="sqb-value-group">
               <input type="text" class="sqb-input" id="bm-delta-input" placeholder="±valor" />
               <button class="sqb sqb--ghost" data-target="bm" data-action="delta" title="Aplicar valor">OK</button>
@@ -392,10 +388,20 @@
           <button class="roll-panel__clear" id="btn-clear-history" title="Limpar histórico">↺ Limpar</button>
         </div>
 
+        <!-- Bônus pré-rolagem -->
+        <div class="roll-panel__bonus">
+          <label class="roll-bonus__label" for="roll-bonus-input">Bônus</label>
+          <div class="roll-bonus__ctrl">
+            <button class="roll-bonus__btn" id="roll-bonus-dec">−</button>
+            <input class="roll-bonus__val" type="number" id="roll-bonus-input" value="0" />
+            <button class="roll-bonus__btn" id="roll-bonus-inc">+</button>
+          </div>
+        </div>
+
         <!-- Resultado atual -->
         <div class="roll-panel__result" id="roll-result-area">
           <p class="roll-result__skill" id="roll-result-skill">—</p>
-          <div class="roll-result__dice">
+          <div class="roll-result__dice" id="roll-result-dice">
             <span class="roll-die" id="roll-d1">—</span>
             <span class="roll-sep">+</span>
             <span class="roll-die" id="roll-d2">—</span>
@@ -403,7 +409,19 @@
             <span class="roll-mod" id="roll-mod">0</span>
           </div>
           <p class="roll-result__total" id="roll-total">—</p>
+          <p class="roll-result__quality" id="roll-quality">—</p>
           <p class="roll-result__label">TOTAL</p>
+        </div>
+
+        <!-- Dado livre -->
+        <div class="roll-panel__free">
+          <label class="roll-free__label" for="roll-free-input">Dado livre</label>
+          <div class="roll-free__row">
+            <input class="roll-free__input" type="text" id="roll-free-input"
+                   placeholder="ex: 4d6+2  /  3d8+1" spellcheck="false" />
+            <button class="btn btn--primary btn--sm" id="roll-free-btn">Rolar</button>
+          </div>
+          <p class="roll-free__error" id="roll-free-error"></p>
         </div>
 
         <!-- Histórico -->
