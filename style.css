@@ -2224,3 +2224,117 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   border: none;
   cursor: pointer;
 }
+
+/* ══════════════════════════════════════════════════════
+   PAINEL DE ROLAGEM — v5 (bônus + dado livre + qualidade)
+   ══════════════════════════════════════════════════════ */
+
+/* Bônus pré-rolagem */
+.roll-panel__bonus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.01);
+  gap: 12px;
+}
+.roll-bonus__label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+.roll-bonus__ctrl {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.roll-bonus__btn {
+  background: var(--bg-panel);
+  border: none;
+  color: var(--cyan);
+  padding: 5px 12px;
+  font-size: 1rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: background var(--transition);
+  line-height: 1;
+}
+.roll-bonus__btn:hover { background: var(--cyan-glow); }
+.roll-bonus__val {
+  background: var(--bg-deep);
+  border: none;
+  color: var(--cyan);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  width: 56px;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.roll-bonus__val::-webkit-inner-spin-button,
+.roll-bonus__val::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+/* Qualidade da rolagem */
+.roll-result__quality {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.roll-result__quality.axioma  { color: var(--gold);    text-shadow: 0 0 10px var(--gold-glow); }
+.roll-result__quality.fluidez { color: var(--cyan);    text-shadow: 0 0 8px var(--cyan-glow); }
+.roll-result__quality.atrito  { color: var(--magenta); text-shadow: 0 0 8px var(--magenta-glow); }
+.roll-result__quality.absurdo { color: var(--red);     text-shadow: 0 0 8px var(--red-glow); }
+
+/* Dado livre */
+.roll-panel__free {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.roll-free__label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.roll-free__row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.roll-free__input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border-mid);
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--transition);
+  letter-spacing: 0.04em;
+}
+.roll-free__input:focus { border-color: var(--cyan); }
+.roll-free__input::placeholder { color: var(--text-ghost); font-size: 0.72rem; }
+.roll-free__error {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--red);
+  min-height: 14px;
+  letter-spacing: 0.04em;
+}
