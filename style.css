@@ -2338,3 +2338,314 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   min-height: 14px;
   letter-spacing: 0.04em;
 }
+
+/* ══════════════════════════════════════════════════════
+   LAYOUT MOBILE DEDICADO — max-width: 600px
+   Cobre iPhone SE (375px) até Android grande (430px)
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+
+  /* ── GLOBALS ── */
+  body { font-size: 0.85rem; }
+
+  /* Botões tocáveis: mínimo 44px de altura (padrão iOS) */
+  .btn, .sqb, .stepper-btn, .counter-btn,
+  .hex-pip, .fonte-pip-btn, .tab,
+  .rd-preset, .skill-row, .roll-bonus__btn,
+  .roll-free-btn, .ability-edit-btn, .ability-remove,
+  .note-remove, .btn-remove-row {
+    min-height: 44px;
+  }
+  .hex-pip { min-height: 40px; } /* hexágono mantém proporção */
+
+  /* ── ROSTER ── */
+  .roster-header {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+  .brand-glitch { font-size: 1.1rem; }
+  .brand-sub    { font-size: 0.58rem; }
+  .roster-header__actions { gap: 8px; }
+  .roster-grid {
+    grid-template-columns: 1fr;
+    padding: 14px;
+    gap: 12px;
+  }
+
+  /* ── SHEET HEADER: duas linhas ──
+     Linha 1: ← | nome/título
+     Linha 2: Configurações | Exportar | Deletar        */
+  .sheet-header {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    grid-template-rows: auto auto;
+    gap: 0;
+    padding: 10px 12px 0;
+    align-items: center;
+  }
+  .sheet-header .btn--icon {
+    grid-row: 1;
+    grid-column: 1;
+    align-self: center;
+  }
+  .sheet-header__identity {
+    grid-row: 1;
+    grid-column: 2;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sheet-header__name  { font-size: 0.95rem; }
+  .sheet-header__title { font-size: 0.6rem; }
+  .sheet-header__actions {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 6px;
+    padding: 8px 0;
+    justify-content: flex-end;
+  }
+  .sheet-header__actions .btn--sm {
+    font-size: 0.68rem;
+    padding: 6px 10px;
+    min-height: 36px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    padding: 0 8px;
+    gap: 0;
+  }
+  .tab {
+    padding: 10px 10px;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    min-height: 40px;
+  }
+
+  /* ── TAB PANELS ── */
+  .tab-panel { padding: 14px 12px; }
+
+  /* ════════════════════
+     ABA 0 — ID
+  ════════════════════ */
+  .id-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .id-right {
+    position: static;
+    order: -1; /* foto+resumo sobe para cima dos campos */
+  }
+  .photo-wrapper {
+    width: 100%;
+    height: 200px;
+  }
+  .attr-grid-mini {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+  .attr-mini { padding: 5px 2px; }
+  .attr-mini__val { font-size: 0.9rem; }
+
+  /* ════════════════════
+     ABA 1 — STATUS
+  ════════════════════ */
+  .status-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .panel-card--full { grid-column: 1; }
+
+  /* Atributos: stepper menor */
+  .attr-row {
+    grid-template-columns: 80px auto 1fr;
+    gap: 8px;
+  }
+  .stepper-btn { padding: 6px 10px; font-size: 0.9rem; }
+  .stepper-val { padding: 4px 10px; font-size: 1.1rem; min-width: 44px; }
+
+  /* Barras de status */
+  .status-bar-header { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .status-num-input  { width: 56px; padding: 4px 6px; font-size: 0.8rem; }
+
+  /* Botões rápidos */
+  .status-quick-btns { gap: 6px; flex-wrap: wrap; }
+  .sqb { padding: 6px 12px; font-size: 0.72rem; min-height: 36px; }
+  .sqb-input { width: 64px; }
+
+  /* Desenvolvimento: 3 colunas mesmo em mobile */
+  .dev-counters {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .dev-counter { padding: 10px 6px; }
+  .dev-counter__label { font-size: 0.58rem; }
+  .dev-stepper .stepper-val { font-size: 0.9rem; min-width: 36px; padding: 2px 6px; }
+  .dev-stepper .stepper-btn { padding: 4px 8px; }
+
+  /* Hexágonos Fontes de Ação */
+  .hex-group { gap: 8px; }
+  .hex-pip   { width: 34px; height: 38px; }
+
+  /* Fonte pips */
+  .fonte-pip-btn { width: 26px; height: 26px; font-size: 0.6rem; }
+
+  /* ════════════════════
+     ABA 2 — PERÍCIAS
+  ════════════════════ */
+  .skills-outer {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .skills-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  /* Híbridos: coluna única também */
+  .skill-group[data-attr-group="hybrid"] { grid-column: 1; }
+
+  .skill-row    { padding: 10px 12px; }
+  .skill-name   { font-size: 0.82rem; }
+  .skill-formula{ font-size: 0.6rem;  }
+  .skill-total  { font-size: 0.82rem; }
+
+  /* Painel de rolagem: abaixo das perícias, largura total */
+  .roll-panel {
+    position: static;
+    width: 100%;
+    max-height: none;
+  }
+  .roll-result__total { font-size: 2.4rem; }
+  .roll-die           { font-size: 1.2rem; padding: 4px 8px; min-width: 36px; }
+
+  /* ════════════════════
+     ABA 3 — ARSENAL
+  ════════════════════ */
+  .arsenal-layout   { gap: 14px; }
+  .arsenal-counters { flex-direction: column; gap: 12px; }
+
+  .big-counter {
+    width: 100%;
+    min-width: unset;
+    padding: 14px 16px;
+  }
+  /* Ctrl ocupa 100% da largura sem transbordar */
+  .big-counter__ctrl {
+    width: 100%;
+    display: flex;
+  }
+  .big-counter__val {
+    flex: 1;
+    font-size: 1.6rem;
+    min-width: 0;
+    padding: 6px 8px;
+  }
+  .counter-btn {
+    padding: 8px 18px;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  /* RD presets: coluna única */
+  .rd-presets {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+  .rd-preset {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px 16px;
+  }
+  .rd-preset span { font-size: 0.65rem; }
+
+  /* Tabela de equipamentos: scroll horizontal */
+  .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .equipment-table { min-width: 520px; font-size: 0.78rem; }
+  .equipment-table th { font-size: 0.58rem; padding: 6px 8px; }
+  .equipment-table td { padding: 5px 6px; }
+  .eq-input { font-size: 0.78rem; padding: 3px 5px; }
+
+  /* ════════════════════
+     ABA 4 — HABILIDADES
+  ════════════════════ */
+  .abilities-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .ability-card { padding: 14px; }
+  .ability-name-input,
+  .ability-name-view { font-size: 0.9rem; }
+  .ability-textarea { font-size: 0.8rem; min-height: 52px; }
+
+  /* Botões do card: sempre visíveis em mobile (sem hover) */
+  .ability-remove,
+  .agent-card__delete { opacity: 1; }
+
+  /* ════════════════════
+     ABA 5 — ANOTAÇÕES
+  ════════════════════ */
+  .notes-grid { grid-template-columns: 1fr; gap: 12px; }
+  .note-remove { opacity: 1; }
+  .note-content-textarea { min-height: 100px; }
+
+  /* ════════════════════
+     MODAIS
+  ════════════════════ */
+  .modal {
+    margin: 12px;
+    max-width: calc(100vw - 24px);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal__body  { padding: 14px; gap: 12px; }
+  .modal__footer{ padding: 12px 14px; gap: 8px; }
+  .modal__title { font-size: 0.9rem; }
+
+  .export-options { grid-template-columns: 1fr; gap: 10px; }
+  .export-option  { padding: 16px; flex-direction: row; gap: 12px; text-align: left; }
+  .export-option__icon { font-size: 1.4rem; flex-shrink: 0; }
+  .export-option__fmt  { font-size: 1rem; }
+
+  .config-webhook-row { flex-direction: column; gap: 8px; }
+  .config-webhook-row .btn { width: 100%; justify-content: center; }
+
+  /* ════════════════════
+     TOAST
+  ════════════════════ */
+  .toast-container { bottom: 16px; right: 12px; left: 12px; }
+  .toast { max-width: 100%; }
+
+  /* ════════════════════
+     PAINEL DE ROLAGEM
+  ════════════════════ */
+  .roll-panel__bonus {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .roll-bonus__val  { width: 48px; font-size: 1rem; }
+  .roll-bonus__btn  { padding: 5px 10px; }
+  .roll-free__row   { gap: 6px; }
+  .roll-free__input { font-size: 0.8rem; }
+
+  /* ════════════════════
+     FOTO DRAG HINT
+  ════════════════════ */
+  /* Em mobile hint sempre visível pois não há hover */
+  .photo-wrapper.has-photo .photo-drag-hint { opacity: 1; }
+  .photo-zoom-slider { opacity: 1; pointer-events: auto; }
+}
+
+/* ── Touch: remover hover states que não se aplicam ── */
+@media (hover: none) {
+  .agent-card:hover { transform: none; box-shadow: none; border-color: var(--border); }
+  .btn:hover        { transform: none; }
+  .skill-row:hover  { background: none; color: var(--text-mid); }
+  .ability-card:hover .ability-remove { opacity: 1; }
+  .note-block:hover  .note-remove     { opacity: 1; }
+  .agent-card:hover  .agent-card__delete { opacity: 1; }
+  .photo-wrapper.has-photo:hover .photo-drag-hint { opacity: 1; }
+  .photo-zoom-slider { opacity: 1; pointer-events: auto; }
+}
