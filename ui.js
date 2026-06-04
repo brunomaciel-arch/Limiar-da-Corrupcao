@@ -127,19 +127,29 @@ export function activateTab(i) {
    ABA 0
 ════════════════════════════════════ */
 function populateTab0(agent) {
-  const photo = $('#agent-photo');
-  const wrapper = $('#photo-wrapper');
+  const photo       = $('#agent-photo');
+  const wrapper     = $('#photo-wrapper');
+  const placeholder = $('#photo-placeholder');
+
   if (agent.photo) {
     photo.src = agent.photo;
-    photo.style.objectPosition = `${agent.photoOffsetX ?? 50}% ${agent.photoOffsetY ?? 50}%`;
-    photo.style.transform = `scale(${agent.photoScale ?? 1})`;
+    photo.style.objectPosition  = `${agent.photoOffsetX ?? 50}% ${agent.photoOffsetY ?? 50}%`;
+    photo.style.transform       = `scale(${agent.photoScale ?? 1})`;
     photo.style.transformOrigin = `${agent.photoOffsetX ?? 50}% ${agent.photoOffsetY ?? 50}%`;
-    photo.style.display = 'block';
+    photo.style.display         = 'block';
     wrapper.classList.add('has-photo');
+    if (placeholder) placeholder.style.display = 'none';
+    // sync zoom slider
+    const zoomInput = $('#photo-zoom-input');
+    const zoomLabel = $('#photo-zoom-label');
+    if (zoomInput) zoomInput.value = agent.photoScale ?? 1;
+    if (zoomLabel) zoomLabel.textContent = `zoom ${(agent.photoScale ?? 1).toFixed(1)}×`;
   } else {
     photo.src = '';
     photo.style.display = 'none';
     wrapper.classList.remove('has-photo');
+    wrapper.classList.remove('move-active');
+    if (placeholder) placeholder.style.display = '';
   }
 
   ['name','title','forma','age','birthdate','history'].forEach(f => {
@@ -403,8 +413,6 @@ function buildAbilityCard(ability) {
           <option value="ruina"      ${ability.type==='ruina'      ?'selected':''}>Ruína</option>
           <option value="adrenalina" ${ability.type==='adrenalina' ?'selected':''}>Adrenalina</option>
         </select>
-        <button class="ability-edit-btn" title="Editar">✎ Editar</button>
-        <button class="ability-remove" title="Remover">✕</button>
       </div>
     </div>
 
@@ -415,6 +423,12 @@ function buildAbilityCard(ability) {
     <p class="ability-label">Refinamento</p>
     <div class="ability-field-view view-only${!ability.refinement ? ' empty' : ''}">${esc(ability.refinement || 'Sem refinamento.')}</div>
     <textarea class="ability-textarea edit-only" rows="2" placeholder="Melhoria ou variação...">${esc(ability.refinement || '')}</textarea>
+
+    <!-- Barra inferior: Editar à esquerda, Remover à direita -->
+    <div class="ability-card__bottom-bar">
+      <button class="ability-edit-btn" title="Editar">✎ Editar</button>
+      <button class="ability-remove" title="Remover habilidade">✕ Remover</button>
+    </div>
   `;
 
   const nameInput  = card.querySelector('.ability-name-input');
@@ -566,14 +580,14 @@ export function bindSheetEvents() {
   $('#btn-export').addEventListener('click', showExportModal);
   $('#btn-delete-agent').addEventListener('click', () => { const a=getActiveAgent(); if(a) showDeleteModal(a.id,a.name); });
 
-  // ── Foto: clique para trocar ──
-  $('#photo-wrapper').addEventListener('click', e => {
-    if (e.target.classList.contains('agent-photo') || e.target.id === 'agent-photo') return;
-    if (!e.target.closest('.photo-drag-hint')) $('#photo-input').click();
-  });
+  // ── Foto: novo sistema ──
+  // Placeholder clicável (estado vazio)
+  $('#photo-placeholder').addEventListener('click', () => $('#photo-input').click());
+  // Botão Trocar
+  $('#photo-btn-change').addEventListener('click', e => { e.stopPropagation(); $('#photo-input').click(); });
+  // Botão Mover — toggle modo
+  $('#photo-btn-move').addEventListener('click', e => { e.stopPropagation(); toggleMoveMode(); });
   $('#photo-input').addEventListener('change', handlePhotoUpload);
-
-  // ── Foto: drag to reposition ──
   bindPhotoDrag();
 
   // ── Campos data-field ──
@@ -862,19 +876,41 @@ function handlePhotoUpload(e) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    const b64   = ev.target.result;
+    const b64         = ev.target.result;
+    const photo       = $('#agent-photo');
+    const wrapper     = $('#photo-wrapper');
+    const placeholder = $('#photo-placeholder');
+
     setField('photo', b64);
-    setPhotoOffset(50, 50, 1); // reset position and scale on new upload
-    const photo   = $('#agent-photo');
-    const wrapper = $('#photo-wrapper');
+    setPhotoOffset(50, 50, 1);
+
     photo.src                  = b64;
     photo.style.objectPosition = '50% 50%';
+    photo.style.transform      = 'scale(1)';
+    photo.style.transformOrigin= '50% 50%';
     photo.style.display        = 'block';
     wrapper.classList.add('has-photo');
-    showToast('Foto atualizada!','success');
+    wrapper.classList.remove('move-active');
+    if (placeholder) placeholder.style.display = 'none';
+
+    const zoomInput = $('#photo-zoom-input');
+    const zoomLabel = $('#photo-zoom-label');
+    if (zoomInput) zoomInput.value = 1;
+    if (zoomLabel) zoomLabel.textContent = 'zoom 1.0×';
+
+    showToast('Foto atualizada!', 'success');
   };
   reader.readAsDataURL(file);
   e.target.value = '';
+}
+
+/* Toggle modo mover (ativa/desativa drag + zoom) */
+function toggleMoveMode() {
+  const wrapper = $('#photo-wrapper');
+  const btn     = $('#photo-btn-move');
+  if (!wrapper.classList.contains('has-photo')) return;
+  const active = wrapper.classList.toggle('move-active');
+  if (btn) btn.classList.toggle('active', active);
 }
 
 function bindPhotoDrag() {
@@ -883,16 +919,7 @@ function bindPhotoDrag() {
   let dragging  = false;
   let startX, startY, startOX, startOY;
 
-  // ── Inject zoom slider into wrapper (once) ──
-  if (!wrapper.querySelector('.photo-zoom-slider')) {
-    const zoomEl = document.createElement('div');
-    zoomEl.className = 'photo-zoom-slider';
-    zoomEl.innerHTML = `
-      <span class="photo-zoom-label" id="photo-zoom-label">zoom 1.0×</span>
-      <input class="photo-zoom-input" id="photo-zoom-input"
-             type="range" min="1" max="3" step="0.05" value="1" />`;
-    wrapper.appendChild(zoomEl);
-  }
+  function isMoveActive() { return wrapper.classList.contains('move-active'); }
 
   function applyZoom(scale) {
     const agent = getActiveAgent();
@@ -912,35 +939,34 @@ function bindPhotoDrag() {
     if (pos) setPhotoOffset(parseFloat(pos[1]), parseFloat(pos[2]), scale);
   }
 
-  // ── Zoom slider input ──
+  // ── Zoom slider ──
   wrapper.addEventListener('input', e => {
     if (e.target.id !== 'photo-zoom-input') return;
-    const scale = parseFloat(e.target.value);
-    applyZoom(scale);
+    applyZoom(parseFloat(e.target.value));
     savePosition();
   });
 
-  // ── Scroll wheel zoom ──
+  // ── Scroll wheel zoom (só no modo mover) ──
   wrapper.addEventListener('wheel', e => {
+    if (!isMoveActive()) return;
     const agent = getActiveAgent();
     if (!agent?.photo) return;
     e.preventDefault();
-    const current = parseFloat(photo.style.transform?.match(/scale\(([\d.]+)\)/)?.[1] ?? 1);
-    const delta   = e.deltaY < 0 ? 0.1 : -0.1;
-    const next    = Math.max(1, Math.min(3, current + delta));
+    const cur  = parseFloat(photo.style.transform?.match(/scale\(([\d.]+)\)/)?.[1] ?? 1);
+    const next = Math.max(1, Math.min(3, cur + (e.deltaY < 0 ? 0.1 : -0.1)));
     applyZoom(next);
     savePosition();
   }, { passive: false });
 
-  // ── Drag to reposition ──
+  // ── Mouse drag (só no modo mover) ──
   wrapper.addEventListener('mousedown', e => {
+    if (!isMoveActive()) return;
     const agent = getActiveAgent();
-    if (!agent?.photo) return;
-    if (e.button !== 0) return;
-    if (e.target.classList.contains('photo-zoom-input')) return;
+    if (!agent?.photo || e.button !== 0) return;
+    if (e.target.id === 'photo-zoom-input') return;
+    if (e.target.closest('.photo-ctrl-btn')) return;
     dragging = true;
-    startX   = e.clientX;
-    startY   = e.clientY;
+    startX   = e.clientX; startY  = e.clientY;
     startOX  = agent.photoOffsetX ?? 50;
     startOY  = agent.photoOffsetY ?? 50;
     photo.classList.add('dragging');
@@ -955,8 +981,7 @@ function bindPhotoDrag() {
     const H    = wrapper.offsetHeight;
     const newX = Math.max(0, Math.min(100, startOX - (dx / W) * 100));
     const newY = Math.max(0, Math.min(100, startOY - (dy / H) * 100));
-    photo.style.objectPosition = `${newX}% ${newY}%`;
-    // Keep transformOrigin in sync while dragging
+    photo.style.objectPosition  = `${newX}% ${newY}%`;
     photo.style.transformOrigin = `${newX}% ${newY}%`;
   });
 
@@ -967,11 +992,11 @@ function bindPhotoDrag() {
     savePosition();
   });
 
-  // ── Touch drag ──
+  // ── Touch drag (só no modo mover) ──
   wrapper.addEventListener('touchstart', e => {
+    if (!isMoveActive()) return;
     const agent = getActiveAgent();
-    if (!agent?.photo) return;
-    if (e.touches.length !== 1) return;
+    if (!agent?.photo || e.touches.length !== 1) return;
     const t  = e.touches[0];
     dragging = true;
     startX   = t.clientX; startY = t.clientY;
