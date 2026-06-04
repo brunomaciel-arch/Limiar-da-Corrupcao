@@ -167,7 +167,9 @@ export function rollFree(expr) {
   const entry = { skill: diceLabel, free: true, total, ts: Date.now() };
   pushRollHistory(entry);
   populateRollHistory(getActiveAgent());
-  sendRoll(diceLabel, d1, d2, 0, parsed.bonus, total, true);
+
+  // Pass full dice array so webhook shows individual results
+  sendRoll(diceLabel, d1, d2, 0, parsed.bonus, total, true, results);
 
   _rolling = false;
   return { ok: true };
