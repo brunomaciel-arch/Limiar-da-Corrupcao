@@ -57,7 +57,7 @@ Controle completo dos valores vitais e atributos:
 
 ### Aba Perícias
 
-19 perícias organizadas por atributo base. Clique em qualquer perícia para rolar os dados.
+20 perícias organizadas por atributo base. Clique em qualquer perícia para rolar os dados.
 
 **Grupos:**
 - Físico: Atletismo, Força, Resistência Física
