@@ -99,13 +99,39 @@
 
       <!-- Coluna direita: foto em cima, resumo embaixo -->
       <div class="id-right">
-        <div class="photo-wrapper" id="photo-wrapper" title="Clique para trocar foto">
-          <img id="agent-photo" src="" alt="Foto do Personagem" draggable="false" />
-          <div class="photo-overlay">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            <span>Trocar foto</span>
+        <div class="photo-wrapper" id="photo-wrapper">
+          <!-- Placeholder: visível quando sem foto -->
+          <div class="photo-placeholder" id="photo-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            <span>Adicionar foto</span>
           </div>
-          <div class="photo-drag-hint" id="photo-drag-hint">↕ Arraste para reposicionar</div>
+
+          <!-- Foto -->
+          <img id="agent-photo" src="" alt="Foto do Personagem" draggable="false" />
+
+          <!-- Controles: visíveis quando tem foto -->
+          <div class="photo-controls" id="photo-controls">
+            <button class="photo-ctrl-btn" id="photo-btn-change" title="Trocar foto">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              Trocar
+            </button>
+            <button class="photo-ctrl-btn" id="photo-btn-move" title="Mover e dar zoom na foto">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+              Mover
+            </button>
+          </div>
+
+          <!-- Hint de modo mover -->
+          <div class="photo-move-hint">Arraste para reposicionar</div>
+
+          <!-- Zoom slider (modo mover) -->
+          <div class="photo-zoom-slider" id="photo-zoom-slider">
+            <span class="photo-zoom-label" id="photo-zoom-label">zoom 1.0×</span>
+            <input class="photo-zoom-input" id="photo-zoom-input" type="range" min="1" max="3" step="0.05" value="1" />
+          </div>
         </div>
         <input type="file" id="photo-input" accept="image/*" hidden />
 
