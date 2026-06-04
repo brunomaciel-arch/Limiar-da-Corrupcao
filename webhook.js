@@ -45,7 +45,7 @@ async function post(url, payload) {
 }
 
 /* ══ sendRoll ══ */
-export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = false) {
+export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = false, allDice = null) {
   const agent = getActiveAgent();
   if (!agent?.webhookRolagens) return;
 
@@ -54,6 +54,7 @@ export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = fa
   const fields = [];
 
   if (!isFree) {
+    // Perícia: d1, d2, mod e bônus separados
     const modStr   = mod   >= 0 ? `+${mod}`   : `${mod}`;
     const bonusStr = bonus >= 0 ? `+${bonus}`  : `${bonus}`;
     fields.push({ name: 'Dado 1', value: `**${d1}**`, inline: true });
@@ -65,7 +66,24 @@ export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = fa
       fields.push({ name: 'Mod', value: `**${modStr}**`, inline: true });
     }
   } else {
-    fields.push({ name: 'Expressão', value: `\`${skillName}\``, inline: true });
+    // Dado livre: mostrar cada dado individualmente
+    if (allDice && allDice.length > 0) {
+      // Agrupar por sides para exibição
+      const groups = {};
+      allDice.forEach(({ value, sign, sides }) => {
+        const key = `${sign < 0 ? '-' : ''}d${sides}`;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(value);
+      });
+
+      Object.entries(groups).forEach(([groupName, values]) => {
+        const vals = values.map(v => `**${v}**`).join('  ·  ');
+        fields.push({ name: groupName, value: vals, inline: false });
+      });
+    } else {
+      fields.push({ name: 'Expressão', value: `\`${skillName}\``, inline: true });
+    }
+
     if (bonus !== 0) {
       const b = bonus >= 0 ? `+${bonus}` : `${bonus}`;
       fields.push({ name: 'Bônus fixo', value: `**${b}**`, inline: true });
