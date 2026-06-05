@@ -400,20 +400,10 @@ function buildAbilityCard(ability) {
 
   card.innerHTML = `
     <div class="ability-card__top-bar">
-      <!-- view mode -->
       <span class="ability-name-view view-only">${esc(ability.name || 'Sem nome')}</span>
-      <!-- edit mode -->
       <input class="ability-name-input edit-only" type="text"
              placeholder="Nome da habilidade..." value="${esc(ability.name || '')}" />
-
-      <div class="ability-card__actions">
-        <span class="ability-type-badge ability-type-badge--${ability.type} view-only">${typeLabel}</span>
-        <select class="ability-type-select edit-only">
-          <option value="ordem"      ${ability.type==='ordem'      ?'selected':''}>Ordem</option>
-          <option value="ruina"      ${ability.type==='ruina'      ?'selected':''}>Ruína</option>
-          <option value="adrenalina" ${ability.type==='adrenalina' ?'selected':''}>Adrenalina</option>
-        </select>
-      </div>
+      <button class="ability-remove" title="Remover habilidade">✕ Remover</button>
     </div>
 
     <p class="ability-label">Descrição da Técnica</p>
@@ -424,10 +414,15 @@ function buildAbilityCard(ability) {
     <div class="ability-field-view view-only${!ability.refinement ? ' empty' : ''}">${esc(ability.refinement || 'Sem refinamento.')}</div>
     <textarea class="ability-textarea edit-only" rows="2" placeholder="Melhoria ou variação...">${esc(ability.refinement || '')}</textarea>
 
-    <!-- Barra inferior: Editar à esquerda, Remover à direita -->
+    <!-- Barra inferior: badge/select à esquerda, Editar à direita -->
     <div class="ability-card__bottom-bar">
+      <span class="ability-type-badge ability-type-badge--${ability.type} view-only">${typeLabel}</span>
+      <select class="ability-type-select edit-only">
+        <option value="ordem"      ${ability.type==='ordem'      ?'selected':''}>Ordem</option>
+        <option value="ruina"      ${ability.type==='ruina'      ?'selected':''}>Ruína</option>
+        <option value="adrenalina" ${ability.type==='adrenalina' ?'selected':''}>Adrenalina</option>
+      </select>
       <button class="ability-edit-btn" title="Editar">✎ Editar</button>
-      <button class="ability-remove" title="Remover habilidade">✕ Remover</button>
     </div>
   `;
 
