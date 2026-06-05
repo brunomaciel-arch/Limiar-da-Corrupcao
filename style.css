@@ -1852,12 +1852,13 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 /* ── ABA 4: cards com modo edição ── */
 .ability-card__top-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
 }
-/* Barra inferior do card: Editar à esquerda, X à direita */
+/* Barra inferior: select à esquerda, botões à direita */
 .ability-card__bottom-bar {
   display: flex;
   align-items: center;
