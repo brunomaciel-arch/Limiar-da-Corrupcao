@@ -175,7 +175,56 @@ export function rollFree(expr) {
   return { ok: true };
 }
 
-/* ══ BINDINGS ══ */
+/* ══ ROLAGEM DE ARMA/ITEM ══ */
+export function rollWeapon(itemName, damageExpr, attrValue, attrName, extraBonus) {
+  if (_rolling) return;
+
+  const parsed = parseExpression(damageExpr);
+  if (!parsed) return;
+
+  _rolling = true;
+
+  const results = [];
+  let total = 0;
+
+  for (const { count, sides, sign } of parsed.dice) {
+    for (let i = 0; i < count; i++) {
+      const r = rand(1, sides);
+      results.push({ value: r, sign, sides });
+      total += r * sign;
+    }
+  }
+  total += parsed.bonus + attrValue + extraBonus;
+
+  const d1 = results[0]?.value ?? 1;
+  const d2 = results[1]?.value ?? d1;
+
+  // Build display label
+  const diceLabel = parsed.dice.map(d =>
+    `${d.sign < 0 ? '-' : ''}${d.count}d${d.sides}`
+  ).join('+') +
+    (parsed.bonus !== 0 ? (parsed.bonus > 0 ? `+${parsed.bonus}` : parsed.bonus) : '') +
+    `+${attrName}(${attrValue})` +
+    (extraBonus !== 0 ? (extraBonus > 0 ? `+${extraBonus}` : extraBonus) : '');
+
+  let diceHtml = '';
+  results.slice(0, 8).forEach((r, i) => {
+    if (i > 0) diceHtml += '<span class="roll-sep">+</span>';
+    diceHtml += `<span class="roll-die">${r.value}</span>`;
+  });
+  if (results.length > 8) diceHtml += '<span class="roll-sep">···</span>';
+  diceHtml += `<span class="roll-sep">+</span><span class="roll-mod">${attrName} ${attrValue > 0 ? '+'+attrValue : attrValue}</span>`;
+  if (extraBonus !== 0) diceHtml += `<span class="roll-sep">+</span><span class="roll-mod">${extraBonus > 0 ? '+'+extraBonus : extraBonus}</span>`;
+
+  showResult(itemName, d1, d2, '', total, diceHtml);
+
+  const entry = { skill: itemName, weapon: true, total, ts: Date.now() };
+  pushRollHistory(entry);
+  populateRollHistory(getActiveAgent());
+  sendRoll(itemName, d1, d2, attrValue, extraBonus, total, false, results);
+
+  _rolling = false;
+}
 const SKILL_NAMES = {
   'atletismo':'Atletismo','forca':'Força','resistencia-fisica':'Resistência Física',
   'sobrevivencia':'Sobrevivência','intuicao':'Intuição','percepcao':'Percepção',
