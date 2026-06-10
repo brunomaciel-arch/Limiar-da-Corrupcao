@@ -3,6 +3,7 @@
    ══════════════════════════════════════════════════════ */
 
 import { sendStatus, sendTest } from './webhook.js';
+import { rollWeapon } from './dice.js';
 import {
   loadAllAgents, createAgent, deleteAgent,
   openAgent, getActiveAgent, setField,
@@ -112,6 +113,7 @@ export function openSheet(id) {
   populateTab4(agent);
   populateTab5(agent);
   populateRollHistory(agent);
+  renderWeapons(agent);
   activateTab(0);
   showView('sheet');
   window.scrollTo({ top: 0, behavior: 'instant' });
@@ -321,8 +323,74 @@ export function populateRollHistory(agent) {
 }
 
 /* ════════════════════════════════════
-   ABA 3
+   ARSENAL NA ABA DE PERÍCIAS
 ════════════════════════════════════ */
+
+/** Detecta se uma string contém uma expressão de dado válida */
+function hasDiceExpr(str) {
+  return /\d+d\d+/i.test(str || '');
+}
+
+export function renderWeapons(agent) {
+  const list  = document.getElementById('weapons-list');
+  const empty = document.getElementById('weapons-empty');
+  if (!list) return;
+
+  // Remove linhas antigas
+  list.querySelectorAll('.weapon-row').forEach(r => r.remove());
+
+  const weapons = (agent.equipment || []).filter(e => hasDiceExpr(e.damage));
+
+  if (!weapons.length) {
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  weapons.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'weapon-row';
+    row.dataset.equipId = item.id;
+
+    const attrOpts = ['fis','ins','raz','pre','prs']
+      .map(a => `<option value="${a}" ${(item.weaponAttr||'fis')===a?'selected':''}>${a.toUpperCase()}</option>`)
+      .join('');
+
+    row.innerHTML = `
+      <span class="weapon-name">${esc(item.name || '—')}</span>
+      <span class="weapon-damage">${esc(item.damage)}</span>
+      <select class="weapon-attr-select" title="Atributo base">${attrOpts}</select>
+      <input class="weapon-bonus-input" type="number" value="${item.weaponBonus ?? 0}"
+             title="Bônus extra" placeholder="+0" />
+      <button class="weapon-roll-btn" title="Rolar dano">🎲</button>
+    `;
+
+    const attrSel   = row.querySelector('.weapon-attr-select');
+    const bonusInp  = row.querySelector('.weapon-bonus-input');
+    const rollBtn   = row.querySelector('.weapon-roll-btn');
+
+    // Salvar attr escolhido
+    attrSel.addEventListener('change', () => {
+      updateEquipmentField(item.id, 'weaponAttr', attrSel.value);
+    });
+
+    // Salvar bônus extra
+    bonusInp.addEventListener('change', () => {
+      updateEquipmentField(item.id, 'weaponBonus', parseInt(bonusInp.value, 10) || 0);
+    });
+
+    // Rolar dano
+    rollBtn.addEventListener('click', () => {
+      const agent     = getActiveAgent();
+      const attrKey   = attrSel.value;
+      const attrValue = agent?.attrs[attrKey] ?? 0;
+      const bonus     = parseInt(bonusInp.value, 10) || 0;
+      rollWeapon(item.name || 'Dano', item.damage, attrValue, attrKey.toUpperCase(), bonus);
+    });
+
+    list.appendChild(row);
+  });
+}
 function populateTab3(agent) {
   $('#rd-val').value      = agent.rd ?? 0;
   $('#credits-val').value = agent.credits ?? 0;
@@ -362,7 +430,11 @@ function buildEquipmentRow(item) {
     inp.type        = f.type || 'text';
     inp.value       = item[f.key] ?? '';
     inp.placeholder = f.ph;
-    inp.addEventListener('change', () => updateEquipmentField(item.id, f.key, inp.value));
+    inp.addEventListener('change', () => {
+      updateEquipmentField(item.id, f.key, inp.value);
+      // Se o campo dano mudou, reatualizar lista de armas
+      if (f.key === 'damage') renderWeapons(getActiveAgent());
+    });
     td.appendChild(inp);
     tr.appendChild(td);
   });
@@ -372,6 +444,7 @@ function buildEquipmentRow(item) {
   btn.addEventListener('click', () => {
     removeEquipment(item.id); tr.remove();
     if (!getActiveAgent().equipment.length) $('#equipment-empty').style.display = '';
+    renderWeapons(getActiveAgent());
   });
   tdBtn.appendChild(btn);
   tr.appendChild(tdBtn);
@@ -737,6 +810,7 @@ export function bindSheetEvents() {
     const tbody = $('#equipment-body');
     $('#equipment-empty').style.display = 'none';
     tbody.appendChild(buildEquipmentRow(item));
+    renderWeapons(getActiveAgent());
   });
 
   // ── Habilidades: adicionar ──
