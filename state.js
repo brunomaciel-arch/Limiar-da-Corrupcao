@@ -57,7 +57,7 @@ function createDefaultAgent(name = 'Novo Personagem', title = '') {
 }
 
 function createEquipmentItem() {
-  return { id: generateId(), name: '', description: '', market: '', damage: '', range: '', price: '', qty: 1 };
+  return { id: generateId(), name: '', description: '', market: '', damage: '', range: '', price: '', qty: 1, weaponAttr: 'fis', weaponBonus: 0 };
 }
 
 function createAbility() {
@@ -77,7 +77,9 @@ function mergeWithDefaults(agent) {
   const merged   = { ...defaults, ...agent };
   merged.attrs   = { ...defaults.attrs, ...(agent.attrs || {}) };
   merged.actionSources = Array.isArray(agent.actionSources) ? agent.actionSources : defaults.actionSources;
-  merged.equipment  = Array.isArray(agent.equipment)  ? agent.equipment  : [];
+  merged.equipment  = Array.isArray(agent.equipment)
+    ? agent.equipment.map(e => ({ weaponAttr: 'fis', weaponBonus: 0, ...e }))
+    : [];
   merged.abilities  = Array.isArray(agent.abilities)  ? agent.abilities  : [];
   merged.notes      = Array.isArray(agent.notes)      ? agent.notes      : [];
   merged.rollHistory = Array.isArray(agent.rollHistory) ? agent.rollHistory : [];
