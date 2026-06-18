@@ -45,7 +45,7 @@ async function post(url, payload) {
 }
 
 /* ══ sendRoll ══ */
-export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = false, allDice = null) {
+export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = false, allDice = null, isWeapon = false) {
   const agent = getActiveAgent();
   if (!agent?.webhookRolagens) return;
 
@@ -53,8 +53,8 @@ export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = fa
   const color  = rollColor(label);
   const fields = [];
 
-  if (!isFree) {
-    // Perícia: d1, d2, mod e bônus separados
+  if (!isFree && !isWeapon) {
+    // Perícia padrão: d1, d2, mod, bônus
     const modStr   = mod   >= 0 ? `+${mod}`   : `${mod}`;
     const bonusStr = bonus >= 0 ? `+${bonus}`  : `${bonus}`;
     fields.push({ name: 'Dado 1', value: `**${d1}**`, inline: true });
@@ -65,25 +65,36 @@ export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = fa
     } else {
       fields.push({ name: 'Mod', value: `**${modStr}**`, inline: true });
     }
-  } else {
-    // Dado livre: mostrar cada dado individualmente
+  } else if (isWeapon) {
+    // Arma: mostrar apenas os dados reais rolados + atributo + bônus
     if (allDice && allDice.length > 0) {
-      // Agrupar por sides para exibição
+      const vals = allDice.map(r => `**${r.value}**`).join('  ·  ');
+      const diceLabel = allDice.length === 1 ? 'Dado' : `Dados (${allDice.length})`;
+      fields.push({ name: diceLabel, value: vals, inline: false });
+    }
+    if (mod !== 0) {
+      const attrStr = mod >= 0 ? `+${mod}` : `${mod}`;
+      fields.push({ name: 'Atributo', value: `**${attrStr}**`, inline: true });
+    }
+    if (bonus !== 0) {
+      const b = bonus >= 0 ? `+${bonus}` : `${bonus}`;
+      fields.push({ name: 'Bônus extra', value: `**${b}**`, inline: true });
+    }
+  } else {
+    // Dado livre: mostrar cada dado agrupado por tipo
+    if (allDice && allDice.length > 0) {
       const groups = {};
       allDice.forEach(({ value, sign, sides }) => {
         const key = `${sign < 0 ? '-' : ''}d${sides}`;
         if (!groups[key]) groups[key] = [];
         groups[key].push(value);
       });
-
       Object.entries(groups).forEach(([groupName, values]) => {
-        const vals = values.map(v => `**${v}**`).join('  ·  ');
-        fields.push({ name: groupName, value: vals, inline: false });
+        fields.push({ name: groupName, value: values.map(v => `**${v}**`).join('  ·  '), inline: false });
       });
     } else {
       fields.push({ name: 'Expressão', value: `\`${skillName}\``, inline: true });
     }
-
     if (bonus !== 0) {
       const b = bonus >= 0 ? `+${bonus}` : `${bonus}`;
       fields.push({ name: 'Bônus fixo', value: `**${b}**`, inline: true });
