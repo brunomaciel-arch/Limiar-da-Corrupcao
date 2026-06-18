@@ -221,7 +221,8 @@ export function rollWeapon(itemName, damageExpr, attrValue, attrName, extraBonus
   const entry = { skill: itemName, weapon: true, total, ts: Date.now() };
   pushRollHistory(entry);
   populateRollHistory(getActiveAgent());
-  sendRoll(itemName, d1, d2, attrValue, extraBonus, total, false, results);
+  // Passa allDice e isWeapon=true para o webhook exibir apenas os dados reais
+  sendRoll(itemName, d1, d2, attrValue, extraBonus, total, false, results, true);
 
   _rolling = false;
 }
