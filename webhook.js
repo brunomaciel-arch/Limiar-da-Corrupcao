@@ -54,21 +54,22 @@ export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = fa
   const fields = [];
 
   if (!isFree && !isWeapon) {
-    // Perícia padrão: d1, d2, mod, bônus
+    // ── Perícia: d1, d2, mod, bônus ──
     const modStr   = mod   >= 0 ? `+${mod}`   : `${mod}`;
     const bonusStr = bonus >= 0 ? `+${bonus}`  : `${bonus}`;
-    fields.push({ name: 'Dado 1', value: `**${d1}**`, inline: true });
-    fields.push({ name: 'Dado 2', value: `**${d2}**`, inline: true });
+    fields.push({ name: 'Dado 1', value: `\`${d1}\``, inline: true });
+    fields.push({ name: 'Dado 2', value: `\`${d2}\``, inline: true });
     if (bonus !== 0) {
       fields.push({ name: 'Mod',   value: `**${modStr}**`,   inline: true });
       fields.push({ name: 'Bônus', value: `**${bonusStr}**`, inline: true });
     } else {
       fields.push({ name: 'Mod', value: `**${modStr}**`, inline: true });
     }
+
   } else if (isWeapon) {
-    // Arma: mostrar apenas os dados reais rolados + atributo + bônus
+    // ── Arma: dados reais + atributo + bônus ──
     if (allDice && allDice.length > 0) {
-      const vals = allDice.map(r => `**${r.value}**`).join('  ·  ');
+      const vals      = allDice.map(r => `\`${r.value}\``).join('  ·  ');
       const diceLabel = allDice.length === 1 ? 'Dado' : `Dados (${allDice.length})`;
       fields.push({ name: diceLabel, value: vals, inline: false });
     }
@@ -80,17 +81,25 @@ export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = fa
       const b = bonus >= 0 ? `+${bonus}` : `${bonus}`;
       fields.push({ name: 'Bônus extra', value: `**${b}**`, inline: true });
     }
+
   } else {
-    // Dado livre: mostrar cada dado agrupado por tipo
+    // ── Dado livre: agrupar por tipo de dado ──
     if (allDice && allDice.length > 0) {
       const groups = {};
-      allDice.forEach(({ value, sign, sides }) => {
-        const key = `${sign < 0 ? '-' : ''}d${sides}`;
+      allDice.forEach(r => {
+        // fix: sides pode ser undefined se o objeto não carregou corretamente
+        const sides = r.sides ?? '?';
+        const sign  = r.sign ?? 1;
+        const key   = `${sign < 0 ? '-' : ''}d${sides}`;
         if (!groups[key]) groups[key] = [];
-        groups[key].push(value);
+        groups[key].push(r.value);
       });
       Object.entries(groups).forEach(([groupName, values]) => {
-        fields.push({ name: groupName, value: values.map(v => `**${v}**`).join('  ·  '), inline: false });
+        fields.push({
+          name:   groupName,
+          value:  values.map(v => `\`${v}\``).join('  ·  '),
+          inline: false,
+        });
       });
     } else {
       fields.push({ name: 'Expressão', value: `\`${skillName}\``, inline: true });
@@ -101,13 +110,26 @@ export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = fa
     }
   }
 
+  // ── Total em destaque + label em negrito ──
+  const boldLabel = label
+    .replace('✦ Axioma',  '✦ **Axioma**')
+    .replace('✖ Absurdo', '✖ **Absurdo**')
+    .replace('~ Fluidez', '~ **Fluidez**')
+    .replace('~ Atrito',  '~ **Atrito**');
+
+  fields.push({
+    name:   'TOTAL',
+    value:  `**\`  ${total}  \`**`,
+    inline: false,
+  });
+
   await post(agent.webhookRolagens, {
     embeds: [{
       color,
       author: { name: `${agent.name || '—'}${agent.title ? '  ·  ' + agent.title : ''}` },
-      title: `🎲  ${skillName}`,
+      title:  `🎲  ${skillName}`,
       fields,
-      footer: { text: `Total: ${total}   ${label}` },
+      footer: { text: boldLabel },
       timestamp: new Date().toISOString(),
     }],
   });
