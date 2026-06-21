@@ -110,7 +110,7 @@ export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = fa
     }
   }
 
-  // ── Total em destaque + label em negrito ──
+  // ── Label de qualidade como campo (markdown funciona em fields, não no footer) ──
   const boldLabel = label
     .replace('✦ Axioma',  '✦ **Axioma**')
     .replace('✖ Absurdo', '✖ **Absurdo**')
@@ -119,7 +119,7 @@ export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = fa
 
   fields.push({
     name:   'TOTAL',
-    value:  `**\`  ${total}  \`**`,
+    value:  `**\`  ${total}  \`**\n${boldLabel}`,
     inline: false,
   });
 
@@ -129,7 +129,6 @@ export async function sendRoll(skillName, d1, d2, mod, bonus, total, isFree = fa
       author: { name: `${agent.name || '—'}${agent.title ? '  ·  ' + agent.title : ''}` },
       title:  `🎲  ${skillName}`,
       fields,
-      footer: { text: boldLabel },
       timestamp: new Date().toISOString(),
     }],
   });
