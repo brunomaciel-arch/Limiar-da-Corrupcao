@@ -138,7 +138,7 @@ export function rollFree(expr) {
   for (const { count, sides, sign } of parsed.dice) {
     for (let i = 0; i < count; i++) {
       const r = rand(1, sides);
-      results.push({ value: r, sign });
+      results.push({ value: r, sign, sides });
       total += r * sign;
     }
   }
