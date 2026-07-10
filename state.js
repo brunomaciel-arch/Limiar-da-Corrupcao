@@ -65,7 +65,7 @@ function createAbility() {
 }
 
 function createNote() {
-  return { id: generateId(), title: '', content: '' };
+  return { id: generateId(), title: '', content: '', createdAt: Date.now() };
 }
 
 function generateId() {
@@ -81,7 +81,9 @@ function mergeWithDefaults(agent) {
     ? agent.equipment.map(e => ({ weaponAttr: 'fis', weaponBonus: 0, ...e }))
     : [];
   merged.abilities  = Array.isArray(agent.abilities)  ? agent.abilities  : [];
-  merged.notes      = Array.isArray(agent.notes)      ? agent.notes      : [];
+  merged.notes = Array.isArray(agent.notes)
+    ? agent.notes.map(n => ({ createdAt: Date.now(), ...n }))
+    : [];
   merged.rollHistory = Array.isArray(agent.rollHistory) ? agent.rollHistory : [];
   // photo offset defaults
   if (merged.photoOffsetX === undefined) merged.photoOffsetX = 50;
