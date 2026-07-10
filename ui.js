@@ -558,33 +558,129 @@ function buildAbilityCard(ability) {
 }
 
 /* ════════════════════════════════════
-   ABA 5
+   ABA 5 — LOGBOOK
 ════════════════════════════════════ */
+
+let _activeNoteId = null;
+
 function populateTab5(agent) {
-  const grid  = $('#notes-grid');
-  const empty = $('#notes-empty');
-  $$('.note-block', grid).forEach(b => b.remove());
-  if (!agent.notes?.length) { empty.style.display = ''; return; }
-  empty.style.display = 'none';
-  agent.notes.forEach(n => grid.insertBefore(buildNoteBlock(n), empty));
+  _activeNoteId = null;
+  renderLogbookList(agent);
+  showLogbookEmpty();
 }
 
-function buildNoteBlock(note) {
-  const block = document.createElement('div');
-  block.className = 'note-block';
-  block.dataset.noteId = note.id;
-  block.innerHTML = `
-    <input class="note-title-input" type="text" placeholder="Título..." value="${esc(note.title||'')}" />
-    <textarea class="note-content-textarea" placeholder="Anotações...">${esc(note.content||'')}</textarea>
-    <button class="note-remove" title="Remover">✕</button>`;
+function renderLogbookList(agent) {
+  const list  = $('#logbook-list');
+  const empty = $('#logbook-list-empty');
+  if (!list) return;
 
-  block.querySelector('.note-title-input').addEventListener('input', e => updateNoteField(note.id,'title',e.target.value));
-  block.querySelector('.note-content-textarea').addEventListener('input', e => updateNoteField(note.id,'content',e.target.value));
-  block.querySelector('.note-remove').addEventListener('click', () => {
-    removeNote(note.id); block.remove();
-    if (!getActiveAgent().notes.length) $('#notes-empty').style.display = '';
+  $$('.logbook-item', list).forEach(i => i.remove());
+
+  const notes = agent.notes || [];
+  if (!notes.length) {
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  notes.forEach((note, idx) => {
+    const li = document.createElement('li');
+    li.className = 'logbook-item';
+    li.dataset.noteId = note.id;
+    if (note.id === _activeNoteId) li.classList.add('active');
+
+    li.innerHTML = `
+      <span class="logbook-item__slash">/</span>
+      <span class="logbook-item__title">${esc(note.title || `NOTA #${String(idx+1).padStart(2,'0')}`)}</span>
+    `;
+
+    li.addEventListener('click', () => openLogbookNote(note.id));
+    list.appendChild(li);
   });
-  return block;
+}
+
+function openLogbookNote(noteId) {
+  const agent = getActiveAgent();
+  const note  = agent.notes.find(n => n.id === noteId);
+  if (!note) return;
+
+  _activeNoteId = noteId;
+
+  // Highlight active in sidebar
+  $$('.logbook-item').forEach(li => {
+    li.classList.toggle('active', li.dataset.noteId === noteId);
+  });
+
+  // Fill panel
+  const idx     = agent.notes.indexOf(note) + 1;
+  const dateStr = note.createdAt
+    ? new Date(note.createdAt).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' }).toUpperCase()
+    : '—';
+
+  $('#logbook-entry-index').textContent = `NOTA #${String(idx).padStart(2,'0')}`;
+  $('#logbook-entry-date').textContent  = dateStr;
+  $('#logbook-entry-title').value   = note.title   || '';
+  $('#logbook-entry-content').value = note.content || '';
+
+  // Show entry, hide empty state
+  $('#logbook-empty-state').style.display = 'none';
+  $('#logbook-entry').hidden = false;
+
+  // Focus content if title is set, otherwise title
+  if (note.title) {
+    $('#logbook-entry-content').focus();
+  } else {
+    $('#logbook-entry-title').focus();
+  }
+}
+
+function showLogbookEmpty() {
+  $('#logbook-empty-state').style.display = '';
+  $('#logbook-entry').hidden = true;
+  _activeNoteId = null;
+  $$('.logbook-item').forEach(li => li.classList.remove('active'));
+}
+
+function bindLogbook() {
+  // Add note
+  $('#btn-add-note').addEventListener('click', () => {
+    const note  = addNote();
+    const agent = getActiveAgent();
+    renderLogbookList(agent);
+    openLogbookNote(note.id);
+  });
+
+  // Close note
+  $('#logbook-btn-close').addEventListener('click', showLogbookEmpty);
+
+  // Delete note
+  $('#logbook-btn-delete').addEventListener('click', () => {
+    if (!_activeNoteId) return;
+    removeNote(_activeNoteId);
+    showLogbookEmpty();
+    renderLogbookList(getActiveAgent());
+    showToast('Nota removida.', 'success');
+  });
+
+  // Title input
+  $('#logbook-entry-title').addEventListener('input', e => {
+    if (!_activeNoteId) return;
+    updateNoteField(_activeNoteId, 'title', e.target.value);
+    // Update sidebar title live
+    const li = $(`.logbook-item[data-note-id="${_activeNoteId}"]`);
+    if (li) {
+      const agent = getActiveAgent();
+      const idx   = agent.notes.findIndex(n => n.id === _activeNoteId) + 1;
+      const titleEl = li.querySelector('.logbook-item__title');
+      if (titleEl) titleEl.textContent = e.target.value || `NOTA #${String(idx).padStart(2,'0')}`;
+    }
+  });
+
+  // Content textarea
+  $('#logbook-entry-content').addEventListener('input', e => {
+    if (!_activeNoteId) return;
+    updateNoteField(_activeNoteId, 'content', e.target.value);
+  });
 }
 
 /* ════════════════════════════════════
@@ -821,13 +917,8 @@ export function bindSheetEvents() {
     grid.insertBefore(buildAbilityCard(a), $('#abilities-empty'));
   });
 
-  // ── Notas: adicionar ──
-  $('#btn-add-note').addEventListener('click', () => {
-    const n    = addNote();
-    const grid = $('#notes-grid');
-    $('#notes-empty').style.display = 'none';
-    grid.insertBefore(buildNoteBlock(n), $('#notes-empty'));
-  });
+  // ── Logbook (Aba 5) ──
+  bindLogbook();
 
   // ── Limpar histórico de rolagens ──
   $('#btn-clear-history').addEventListener('click', () => {
