@@ -3029,3 +3029,396 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   .weapon-bonus-input { grid-column: 1; grid-row: 4; width: 100%; }
   .weapon-row { grid-template-columns: 1fr 40px; grid-template-rows: auto auto auto auto; }
 }
+
+/* ══════════════════════════════════════════════════════
+   LOGBOOK — Aba 5  (inspiração: Pacific Drive)
+   ══════════════════════════════════════════════════════ */
+
+.logbook-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  height: calc(100vh - 140px);
+  min-height: 480px;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-deep);
+}
+
+/* ── SIDEBAR ── */
+.logbook-sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border-mid);
+  overflow: hidden;
+}
+
+.logbook-sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 10px;
+  flex-shrink: 0;
+}
+
+.logbook-sidebar__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.logbook-sidebar__slash {
+  color: var(--cyan);
+  font-size: 0.6rem;
+  letter-spacing: 0;
+}
+
+.logbook-add-btn {
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: 1px solid var(--border-mid);
+  border-radius: 3px;
+  color: var(--cyan);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+.logbook-add-btn:hover {
+  background: var(--cyan-glow);
+  border-color: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan-glow2);
+}
+
+.logbook-sidebar__divider {
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--border-mid) 0px, var(--border-mid) 6px,
+    transparent 6px, transparent 10px
+  );
+  margin: 0 10px 6px;
+  flex-shrink: 0;
+}
+
+/* List */
+.logbook-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  list-style: none;
+  padding: 4px 0 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-ghost) transparent;
+}
+.logbook-list::-webkit-scrollbar { width: 4px; }
+.logbook-list::-webkit-scrollbar-thumb { background: var(--text-ghost); border-radius: 2px; }
+
+.logbook-list__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 16px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-ghost);
+  letter-spacing: 0.06em;
+}
+.logbook-list__empty-icon { font-size: 1.4rem; opacity: 0.25; }
+
+/* Note item in list */
+.logbook-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 14px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background var(--transition), border-color var(--transition);
+  position: relative;
+}
+.logbook-item:hover {
+  background: rgba(0,229,255,0.04);
+  border-left-color: var(--text-ghost);
+}
+.logbook-item.active {
+  background: rgba(0,229,255,0.07);
+  border-left-color: var(--cyan);
+}
+.logbook-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 12px; right: 12px;
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--border) 0px, var(--border) 4px,
+    transparent 4px, transparent 8px
+  );
+}
+
+.logbook-item__icon {
+  font-size: 0.7rem;
+  color: var(--text-ghost);
+  flex-shrink: 0;
+  transition: color var(--transition);
+  font-family: var(--font-mono);
+}
+.logbook-item.active .logbook-item__icon { color: var(--cyan); }
+.logbook-item:hover .logbook-item__icon { color: var(--text-dim); }
+
+.logbook-item__slash {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cyan);
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+.logbook-item.active .logbook-item__slash { opacity: 1; }
+
+.logbook-item__title {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color var(--transition);
+}
+.logbook-item.active .logbook-item__title { color: var(--text-bright); }
+.logbook-item:hover .logbook-item__title  { color: var(--text-mid); }
+
+/* ── MAIN PANEL ── */
+.logbook-main {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-deep);
+  overflow: hidden;
+  position: relative;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.015) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Empty state */
+.logbook-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  text-align: center;
+}
+.logbook-empty-state__icon {
+  font-size: 2.4rem;
+  color: var(--text-ghost);
+  opacity: 0.3;
+  animation: pulse-dim 3s ease-in-out infinite;
+}
+@keyframes pulse-dim {
+  0%, 100% { opacity: 0.2; }
+  50%       { opacity: 0.5; }
+}
+.logbook-empty-state__title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 0.14em;
+}
+.logbook-empty-state__sub {
+  font-size: 0.75rem;
+  color: var(--text-ghost);
+  line-height: 1.6;
+}
+
+/* Entry */
+.logbook-entry {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.logbook-entry__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  flex-shrink: 0;
+}
+
+.logbook-entry__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logbook-entry__slash {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--cyan);
+  letter-spacing: 0;
+}
+.logbook-entry__index {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+}
+.logbook-entry__date {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-ghost);
+  letter-spacing: 0.08em;
+  padding-left: 8px;
+  border-left: 1px solid var(--border-mid);
+}
+
+.logbook-entry__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.logbook-close-btn,
+.logbook-delete-btn {
+  background: none;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+}
+.logbook-close-btn {
+  color: var(--text-dim);
+  padding: 4px 10px;
+}
+.logbook-close-btn:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: var(--cyan-glow);
+}
+.logbook-delete-btn {
+  color: var(--red);
+  border-color: var(--red-dim);
+  padding: 4px 8px;
+}
+.logbook-delete-btn:hover {
+  background: var(--red-glow);
+  border-color: var(--red);
+}
+
+/* Dividers */
+.logbook-entry__divider {
+  height: 1px;
+  flex-shrink: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--border-mid) 0px, var(--border-mid) 8px,
+    transparent 8px, transparent 14px
+  );
+  margin: 0 20px;
+}
+.logbook-entry__divider--sub {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--border) 0px, var(--border) 4px,
+    transparent 4px, transparent 8px
+  );
+  margin: 0 20px;
+}
+
+/* Title input */
+.logbook-entry__title-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px 20px 12px;
+  width: 100%;
+  flex-shrink: 0;
+  caret-color: var(--cyan);
+}
+.logbook-entry__title-input::placeholder {
+  color: var(--text-ghost);
+  font-weight: 400;
+}
+.logbook-entry__title-input:focus::placeholder { opacity: 0.5; }
+
+/* Content textarea */
+.logbook-entry__content {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--text-mid);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.9;
+  padding: 14px 20px 20px;
+  caret-color: var(--cyan);
+  /* Subtle line-paper effect */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent calc(1.9em - 1px),
+    rgba(0,229,255,0.04) calc(1.9em - 1px),
+    rgba(0,229,255,0.04) 1.9em
+  );
+  background-attachment: local;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-ghost) transparent;
+}
+.logbook-entry__content::-webkit-scrollbar { width: 4px; }
+.logbook-entry__content::-webkit-scrollbar-thumb { background: var(--text-ghost); border-radius: 2px; }
+.logbook-entry__content::placeholder { color: var(--text-ghost); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .logbook-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 200px 1fr;
+    height: auto;
+    min-height: 600px;
+  }
+  .logbook-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border-mid);
+    max-height: 200px;
+  }
+  .logbook-list { max-height: 140px; }
+}
