@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Limiar da Corrupção — Central de Personagens</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
 
@@ -61,7 +60,7 @@
     <button class="tab" data-tab="2" role="tab">Perícias</button>
     <button class="tab" data-tab="3" role="tab">Arsenal</button>
     <button class="tab" data-tab="4" role="tab">Habilidades</button>
-    <button class="tab" data-tab="5" role="tab">Anotações</button>
+    <button class="tab" data-tab="5" role="tab">Logbook</button>
   </nav>
 
   <!-- ══ ABA 0: ID ══ -->
@@ -535,16 +534,82 @@
     </div>
   </section>
 
-  <!-- ══ ABA 5: ANOTAÇÕES ══ -->
+  <!-- ══ ABA 5: LOGBOOK ══ -->
   <section class="tab-panel" data-panel="5" role="tabpanel">
-    <div class="notes-layout">
-      <div class="notes-toolbar">
-        <button class="btn btn--primary" id="btn-add-note">+ Novo Bloco</button>
-      </div>
-      <div class="notes-grid" id="notes-grid">
-        <p class="table-empty" id="notes-empty">Nenhuma anotação cadastrada.</p>
-      </div>
-    </div>
+    <div class="logbook-layout">
+
+      <!-- ── Painel lateral ── -->
+      <aside class="logbook-sidebar">
+        <div class="logbook-sidebar__header">
+          <div class="logbook-sidebar__title">
+            <span class="logbook-sidebar__slash">/ /</span>
+            <span>ENTRADAS</span>
+          </div>
+          <button class="logbook-add-btn" id="btn-add-note" title="Nova nota">+</button>
+        </div>
+        <div class="logbook-sidebar__divider"></div>
+        <ul class="logbook-list" id="logbook-list">
+          <li class="logbook-list__empty" id="logbook-list-empty">
+            <span class="logbook-list__empty-icon">◈</span>
+            <span>Nenhuma nota registrada.</span>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- ── Painel central ── -->
+      <div class="logbook-main" id="logbook-main">
+
+        <!-- Estado vazio -->
+        <div class="logbook-empty-state" id="logbook-empty-state">
+          <div class="logbook-empty-state__icon">◈</div>
+          <p class="logbook-empty-state__title">// NENHUMA ENTRADA SELECIONADA</p>
+          <p class="logbook-empty-state__sub">Selecione uma nota na lista lateral<br/>ou crie uma nova entrada.</p>
+        </div>
+
+        <!-- Estado ativo (nota aberta) -->
+        <div class="logbook-entry" id="logbook-entry" hidden>
+
+          <!-- Header da nota -->
+          <div class="logbook-entry__header">
+            <div class="logbook-entry__meta">
+              <span class="logbook-entry__slash">/ /</span>
+              <span class="logbook-entry__index" id="logbook-entry-index">NOTA #01</span>
+              <span class="logbook-entry__date" id="logbook-entry-date">—</span>
+            </div>
+            <div class="logbook-entry__actions">
+              <button class="logbook-delete-btn" id="logbook-btn-delete" title="Deletar nota">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+              <button class="logbook-close-btn" id="logbook-btn-close" title="Fechar nota">✕</button>
+            </div>
+          </div>
+
+          <div class="logbook-entry__divider"></div>
+
+          <!-- Título editável -->
+          <input
+            class="logbook-entry__title-input"
+            id="logbook-entry-title"
+            type="text"
+            placeholder="// TÍTULO DA ENTRADA..."
+            spellcheck="false"
+          />
+
+          <div class="logbook-entry__divider logbook-entry__divider--sub"></div>
+
+          <!-- Conteúdo editável -->
+          <textarea
+            class="logbook-entry__content"
+            id="logbook-entry-content"
+            placeholder="Escreva suas anotações de campo aqui..."
+            spellcheck="false"
+          ></textarea>
+
+        </div><!-- /#logbook-entry -->
+
+      </div><!-- /#logbook-main -->
+
+    </div><!-- /.logbook-layout -->
   </section>
 
 </div><!-- /#view-sheet -->
