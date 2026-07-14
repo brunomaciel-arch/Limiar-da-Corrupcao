@@ -5,11 +5,15 @@
 
 import { renderRoster, bindRosterEvents, bindSheetEvents, showView } from './ui.js';
 import { bindSkillRolls } from './dice.js';
+import { getTheme, applyTheme } from './state.js';
 
 /* ══════════════════════════
    INICIALIZAÇÃO
 ══════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
+
+  // 0. Aplicar tema salvo (antes de qualquer render, evita flash)
+  applyTheme(getTheme());
 
   // 1. Mostrar o Roster como tela inicial
   showView('roster');
