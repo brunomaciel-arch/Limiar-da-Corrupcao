@@ -16,6 +16,7 @@ import {
   addNote, updateNoteField, removeNote,
   stepDev, setPhotoOffset,
   clearRollHistory,
+  getTheme, setTheme,
 } from './state.js';
 
 const $ = (s, c = document) => c.querySelector(s);
@@ -985,6 +986,7 @@ export function showConfigModal() {
   $('#config-feedback-status').textContent   = '';
   $('#config-feedback-rolagens').className   = 'config-feedback';
   $('#config-feedback-status').className     = 'config-feedback';
+  markActiveTheme();
   $('#modal-config').hidden = false;
 }
 
@@ -992,11 +994,27 @@ export function hideConfigModal() {
   $('#modal-config').hidden = true;
 }
 
+function markActiveTheme() {
+  const current = getTheme();
+  $$('.theme-option').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === current);
+  });
+}
+
 function bindConfigModal() {
   $('#modal-close-config').addEventListener('click', hideConfigModal);
   $('#modal-cancel-config').addEventListener('click', hideConfigModal);
   $('#modal-config').addEventListener('click', e => {
     if (e.target === e.currentTarget) hideConfigModal();
+  });
+
+  // Seletor de tema — aplica imediatamente ao clicar
+  $$('.theme-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setTheme(btn.dataset.theme);
+      markActiveTheme();
+      showToast('Tema aplicado!', 'success');
+    });
   });
 
   $('#modal-save-config').addEventListener('click', () => {
