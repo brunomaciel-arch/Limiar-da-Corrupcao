@@ -5,7 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Limiar da Corrupção — Central de Personagens</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" type="image/png" href="favicon.png">
+  <script>
+    // Aplica o tema salvo antes do primeiro paint, evitando flash do tema padrão
+    (function() {
+      try {
+        var saved = localStorage.getItem('limiar_theme');
+        if (saved && saved !== 'default') {
+          document.documentElement.setAttribute('data-theme', saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -685,6 +695,25 @@
       <button class="modal__close" id="modal-close-config">✕</button>
     </div>
     <div class="modal__body">
+
+      <div class="config-section">
+        <p class="config-section__title">Tema Visual</p>
+        <p class="config-section__desc">Aplicado globalmente e mantido entre sessões.</p>
+        <div class="theme-selector" id="theme-selector">
+          <button class="theme-option" data-theme="default">
+            <span class="theme-option__swatch theme-option__swatch--default"></span>
+            <span class="theme-option__name">Cyberpunk</span>
+          </button>
+          <button class="theme-option" data-theme="terminal">
+            <span class="theme-option__swatch theme-option__swatch--terminal"></span>
+            <span class="theme-option__name">Terminal</span>
+          </button>
+          <button class="theme-option" data-theme="amber">
+            <span class="theme-option__swatch theme-option__swatch--amber"></span>
+            <span class="theme-option__name">Âmbar</span>
+          </button>
+        </div>
+      </div>
 
       <div class="config-section">
         <p class="config-section__title">Discord — Webhook de Rolagens</p>
