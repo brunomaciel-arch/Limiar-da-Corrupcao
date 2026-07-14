@@ -464,3 +464,39 @@ export async function importAgentFromFile(file, options = {}) {
 function sanitize(name) {
   return (name || 'personagem').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]/g,'_').toLowerCase().slice(0,60);
 }
+
+/* ══════════════════════════
+   TEMA VISUAL (global, não atrelado ao personagem)
+══════════════════════════ */
+const THEME_KEY = 'limiar_theme';
+const VALID_THEMES = ['default', 'terminal', 'amber'];
+
+/** Retorna o tema salvo, ou 'default' se nunca configurado. */
+export function getTheme() {
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    return VALID_THEMES.includes(saved) ? saved : 'default';
+  } catch {
+    return 'default';
+  }
+}
+
+/** Aplica e persiste um tema. 'default' remove o atributo (usa :root puro). */
+export function setTheme(theme) {
+  const t = VALID_THEMES.includes(theme) ? theme : 'default';
+  try {
+    localStorage.setItem(THEME_KEY, t);
+  } catch (e) {
+    console.warn('[State] Falha ao salvar tema:', e);
+  }
+  applyTheme(t);
+}
+
+/** Aplica o tema ao DOM sem persistir (usado no boot). */
+export function applyTheme(theme) {
+  if (theme === 'default') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+}
