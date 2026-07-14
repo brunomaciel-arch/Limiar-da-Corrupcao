@@ -3424,3 +3424,276 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   }
   .logbook-list { max-height: 140px; }
 }
+
+/* ══════════════════════════════════════════════════════
+   SISTEMA DE TEMAS
+   Aplicado via [data-theme="..."] no <html> ou <body>
+   Cada tema sobrescreve as variáveis de :root.
+   ══════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────
+   TEMA: TERMINAL
+   Inspiração: console SSH, shell minimalista
+   Verde-menta sobre preto quase puro, tudo mono.
+──────────────────────────────────────── */
+[data-theme="terminal"] {
+  --bg-deep:    #050805;
+  --bg-panel:   #0a0f0a;
+  --bg-card:    #0d150d;
+  --bg-input:   #060a06;
+  --bg-hover:   #101a10;
+
+  /* Verde-menta substitui o ciano como cor primária */
+  --cyan:       #4ade80;
+  --cyan-dim:   #22c55e;
+  --cyan-glow:  rgba(74, 222, 128, 0.14);
+  --cyan-glow2: rgba(74, 222, 128, 0.28);
+
+  /* Magenta vira amarelo pálido (valores/config, como na referência) */
+  --magenta:    #eab676;
+  --magenta-dim:#c99456;
+  --magenta-glow: rgba(234, 182, 118, 0.14);
+
+  /* Gold mantém-se âmbar suave para avisos */
+  --gold:       #facc15;
+  --gold-dim:   #ca9f0d;
+  --gold-glow:  rgba(250, 204, 21, 0.14);
+
+  --green:      #4ade80;
+  --green-dim:  #22c55e;
+  --green-glow: rgba(74, 222, 128, 0.14);
+
+  --red:        #f87171;
+  --red-dim:    #dc4444;
+  --red-glow:   rgba(248, 113, 113, 0.16);
+
+  --text-bright: #e8fbe8;
+  --text-mid:    #8fae8f;
+  --text-dim:    #4a6a4a;
+  --text-ghost:  #223322;
+
+  --border:      rgba(74, 222, 128, 0.10);
+  --border-mid:  rgba(74, 222, 128, 0.20);
+  --border-bright: rgba(74, 222, 128, 0.45);
+
+  /* Terminal: cantos retos, sem curvatura decorativa */
+  --radius-sm:  2px;
+  --radius-md:  2px;
+  --radius-lg:  3px;
+
+  /* Tipografia: tudo mono, sem display/body diferenciados */
+  --font-display: 'Share Tech Mono', monospace;
+  --font-body:    'Share Tech Mono', monospace;
+  --font-mono:    'Share Tech Mono', monospace;
+
+  --fis-color: var(--gold);
+  --ins-color: var(--cyan);
+  --raz-color: var(--magenta);
+  --pre-color: #86efac;
+  --prs-color: #bef264;
+  --hybrid-color: #6b8f6b;
+}
+
+/* Terminal: remove glow/blur decorativo — visual plano de console */
+[data-theme="terminal"] .brand-glitch {
+  text-shadow: none;
+}
+[data-theme="terminal"] body {
+  background-image:
+    linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
+}
+[data-theme="terminal"] .btn--primary {
+  box-shadow: none;
+}
+[data-theme="terminal"] .btn--primary:hover {
+  box-shadow: none;
+  background: var(--cyan);
+  color: var(--bg-deep);
+}
+[data-theme="terminal"] .agent-card:hover,
+[data-theme="terminal"] .skill-row:hover,
+[data-theme="terminal"] .dice-popup,
+[data-theme="terminal"] .roll-panel__result {
+  box-shadow: none;
+}
+/* Barra de status em blocos ASCII-like (sem glow, borda quadrada) */
+[data-theme="terminal"] .status-bar__fill,
+[data-theme="terminal"] .bar-fill,
+[data-theme="terminal"] .attr-bar-fill,
+[data-theme="terminal"] .agent-card__bar-fill {
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+[data-theme="terminal"] .status-bar,
+[data-theme="terminal"] .summary-bar,
+[data-theme="terminal"] .attr-bar-mini {
+  border-radius: 0;
+}
+/* Prompt-style prefix nos headers de seção */
+[data-theme="terminal"] .panel-card__title::before,
+[data-theme="terminal"] .skill-group__header span:first-child::before {
+  content: '$ ';
+  color: var(--cyan-dim);
+}
+
+/* ────────────────────────────────────────
+   TEMA: ÂMBAR
+   Inspiração: painel tático + HUD de traje espacial
+   Âmbar sobre cinza-quente, estrutura rígida + cards suaves.
+──────────────────────────────────────── */
+[data-theme="amber"] {
+  --bg-deep:    #12100d;
+  --bg-panel:   #1a1712;
+  --bg-card:    #211c15;
+  --bg-input:   #0d0b08;
+  --bg-hover:   #2a231a;
+
+  /* Âmbar substitui o ciano como cor primária */
+  --cyan:       #ffa726;
+  --cyan-dim:   #e08a1a;
+  --cyan-glow:  rgba(255, 167, 38, 0.16);
+  --cyan-glow2: rgba(255, 167, 38, 0.32);
+
+  /* Magenta vira laranja-vermelho (alertas/corrupção) */
+  --magenta:    #ff7043;
+  --magenta-dim:#e05a2e;
+  --magenta-glow: rgba(255, 112, 67, 0.16);
+
+  --gold:       #ffca28;
+  --gold-dim:   #e0a815;
+  --gold-glow:  rgba(255, 202, 40, 0.16);
+
+  --green:      #9ccc65;
+  --green-dim:  #7cb342;
+  --green-glow: rgba(156, 204, 101, 0.16);
+
+  --red:        #ef5350;
+  --red-dim:    #d32f2f;
+  --red-glow:   rgba(239, 83, 80, 0.18);
+
+  --text-bright: #fff3e0;
+  --text-mid:    #c9a876;
+  --text-dim:    #7a6448;
+  --text-ghost:  #3a3226;
+
+  --border:      rgba(255, 167, 38, 0.12);
+  --border-mid:  rgba(255, 167, 38, 0.24);
+  --border-bright: rgba(255, 167, 38, 0.5);
+
+  /* Âmbar: mistura — estrutura reta, cards de conteúdo arredondados */
+  --radius-sm:  2px;
+  --radius-md:  4px;
+  --radius-lg:  10px;
+
+  --font-display: 'Rajdhani', sans-serif;
+  --font-body:    'Exo 2', sans-serif;
+  --font-mono:    'Share Tech Mono', monospace;
+
+  --fis-color: var(--gold);
+  --ins-color: var(--cyan);
+  --raz-color: var(--magenta);
+  --pre-color: #ffb74d;
+  --prs-color: #ffd54f;
+  --hybrid-color: #a1887f;
+}
+
+/* Âmbar: elementos estruturais (headers, tabelas, tabs) retos */
+[data-theme="amber"] .roster-header,
+[data-theme="amber"] .sheet-header,
+[data-theme="amber"] .tabs,
+[data-theme="amber"] .equipment-table,
+[data-theme="amber"] .panel-card__header {
+  border-radius: 0;
+}
+[data-theme="amber"] body {
+  background-image:
+    linear-gradient(rgba(255,167,38,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,167,38,0.025) 1px, transparent 1px);
+}
+/* Cards de conteúdo mantêm o radius-lg suave (referência 3) */
+[data-theme="amber"] .agent-card,
+[data-theme="amber"] .ability-card,
+[data-theme="amber"] .note-block,
+[data-theme="amber"] .panel-card,
+[data-theme="amber"] .modal {
+  border-radius: var(--radius-lg);
+}
+/* Displays numéricos: tracking largo simulando 7-segmentos */
+[data-theme="amber"] .stepper-val,
+[data-theme="amber"] .big-counter__val,
+[data-theme="amber"] .roll-result__total,
+[data-theme="amber"] .summary-vals,
+[data-theme="amber"] .status-num-input {
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 0.06em;
+}
+/* Hexágonos de Fonte de Ação: contorno mais anguloso e nítido */
+[data-theme="amber"] .hex-pip {
+  filter: none;
+}
+[data-theme="amber"] .hex-pip.active {
+  filter: drop-shadow(0 0 4px var(--cyan));
+}
+
+/* ══════════════════════════════════════════════════════
+   SELETOR DE TEMA (modal Configurações)
+   ══════════════════════════════════════════════════════ */
+
+.theme-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), transform 0.08s;
+}
+.theme-option:hover {
+  border-color: var(--cyan-dim);
+  background: var(--bg-hover);
+}
+.theme-option.active {
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan-glow);
+}
+.theme-option:active { transform: scale(0.97); }
+
+.theme-option__swatch {
+  width: 32px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+  overflow: hidden;
+}
+.theme-option__swatch--default {
+  background: linear-gradient(135deg, #050a14 50%, #00e5ff 50%);
+}
+.theme-option__swatch--terminal {
+  background: linear-gradient(135deg, #050805 50%, #4ade80 50%);
+}
+.theme-option__swatch--amber {
+  background: linear-gradient(135deg, #12100d 50%, #ffa726 50%);
+}
+
+.theme-option__name {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color var(--transition);
+}
+.theme-option.active .theme-option__name { color: var(--cyan); }
+.theme-option:hover .theme-option__name  { color: var(--text-mid); }
